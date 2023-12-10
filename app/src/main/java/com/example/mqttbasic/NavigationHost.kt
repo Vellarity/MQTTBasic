@@ -1,0 +1,19 @@
+package com.example.mqttbasic
+
+import androidx.compose.runtime.Composable
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import com.example.mqttbasic.ui.scenes.listofbrokers.ListOfBrokers
+import com.example.mqttbasic.ui.scenes.listofbrokers.ListOfBrokersViewModel
+import com.example.mqttbasic.ui.scenes.main.MainPage
+
+
+@Composable
+fun MqttBasicNavHost(navController: NavHostController) {
+    NavHost(navController = navController, startDestination = "main"){
+        composable("main") { MainPage(navController) }
+        composable("list_of_brokers") { ListOfBrokers(navController, ListOfBrokersViewModel()) }
+        composable("connect_to_broker"){}
+    }
+}

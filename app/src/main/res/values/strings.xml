@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">MQTTBasic</string>
+    <string name="list_of_brokers">Список подключений</string>
+    <string name="create_connection">Новое подключение</string>
+</resources>
