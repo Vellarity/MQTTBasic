@@ -15,6 +15,6 @@ interface ConnectionDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertConnections(vararg connections:Connection)
 
-    @Delete(entity = Connection::class)
-    suspend fun deleteConnections(vararg id:Int)
+    @Query("DELETE FROM connection WHERE id = :id")
+    suspend fun deleteConnection(id:Int)
 }

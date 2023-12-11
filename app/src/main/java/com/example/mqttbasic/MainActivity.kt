@@ -15,20 +15,22 @@ import androidx.navigation.compose.rememberNavController
 import com.example.mqttbasic.data.model.database.AppDatabase
 import com.example.mqttbasic.ui.theme.LightGrey
 import com.example.mqttbasic.ui.theme.MQTTBasicTheme
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val db = AppDatabase.getInstance(applicationContext)
-
-        runBlocking {
-            launch {
-                db.connectionDao().getConnections()
-            }
-        }
+//
+//        val db = AppDatabase.getInstance(applicationContext)
+//
+//        runBlocking {
+//            launch {
+//                db.connectionDao().getConnections()
+//            }
+//        }
 
         setContent {
             MQTTBasicTheme() {

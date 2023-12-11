@@ -41,7 +41,7 @@ fun TopBar(name:String) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(80.dp)
+                .height(60.dp)
 //                .background(DarkGrey, RoundedCornerShape(20.dp))
 //                .padding(10.dp)
         ) {
@@ -53,7 +53,7 @@ fun TopBar(name:String) {
             ) {
                 Button(
                     modifier = Modifier
-                        .size(80.dp),
+                        .size(60.dp),
                     colors = ButtonDefaults.buttonColors(
                         DarkGrey
                     ),

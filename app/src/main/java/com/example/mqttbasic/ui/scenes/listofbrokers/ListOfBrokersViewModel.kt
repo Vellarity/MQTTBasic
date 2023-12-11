@@ -3,13 +3,20 @@ package com.example.mqttbasic.ui.scenes.listofbrokers
 import android.app.Activity
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.example.mqttbasic.base.UiEvent
 import com.example.mqttbasic.data.model.database.AppDatabase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ListOfBrokersViewModel(): ViewModel() {
+@HiltViewModel
+class ListOfBrokersViewModel @Inject constructor(
+    val db: AppDatabase
+): ViewModel() {
 
     private var _uiState:MutableStateFlow<ListOfBrokersState> = MutableStateFlow(ListOfBrokersState.Loading)
     val uiState = _uiState.asStateFlow()
@@ -49,7 +56,9 @@ class ListOfBrokersViewModel(): ViewModel() {
     }
 
     private fun getConnectionsList() {
-
+        viewModelScope.launch {
+            val listOfConnections = db.connectionDao().getConnections()
+        }
     }
 
 }

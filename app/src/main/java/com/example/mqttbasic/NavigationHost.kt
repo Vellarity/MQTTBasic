@@ -1,6 +1,7 @@
 package com.example.mqttbasic
 
 import androidx.compose.runtime.Composable
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -13,7 +14,7 @@ import com.example.mqttbasic.ui.scenes.main.MainPage
 fun MqttBasicNavHost(navController: NavHostController) {
     NavHost(navController = navController, startDestination = "main"){
         composable("main") { MainPage(navController) }
-        composable("list_of_brokers") { ListOfBrokers(navController, ListOfBrokersViewModel()) }
+        composable("list_of_brokers") { ListOfBrokers(navController, hiltViewModel<ListOfBrokersViewModel>()) }
         composable("connect_to_broker"){}
     }
 }

@@ -21,9 +21,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.mqttbasic.ui.components.ConnectionWidget
@@ -35,7 +37,7 @@ import com.example.mqttbasic.ui.theme.LightGrey
 @SuppressLint("StateFlowValueCalledInComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ListOfBrokers(navController:NavHostController, viewModel: ListOfBrokersViewModel = ListOfBrokersViewModel()) {
+fun ListOfBrokers(navController:NavHostController, viewModel: ListOfBrokersViewModel = hiltViewModel<ListOfBrokersViewModel>()) {
     val state = viewModel.uiState.collectAsState().value
 
     Scaffold(
@@ -102,13 +104,38 @@ fun ErrorBlock() {
             text = "Произошла непредвиденная ошибка",
             fontSize = 36.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.White
+            color = Color.White,
+            textAlign = TextAlign.Center
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true)
 @Composable
 private fun ListOfBrokersPagePreview() {
-    ListOfBrokers(navController = rememberNavController())
+    val state:ListOfBrokersState = ListOfBrokersState.Error
+
+    Scaffold(
+        containerColor = LightGrey,
+        topBar = {TopBar(name = "Подключения")},
+        contentWindowInsets = WindowInsets(10.dp, 10.dp, 10.dp, 20.dp),
+        floatingActionButton = {FloatingButton()},
+        floatingActionButtonPosition = FabPosition.End
+    ) {
+            innerPadding ->
+        Box(
+            modifier = Modifier
+                .padding(innerPadding)
+                .background(DarkGrey, RoundedCornerShape(20.dp))
+                .fillMaxSize()
+        ) {
+            when(state) {
+                is ListOfBrokersState.Loading -> { LoadingBlock() }
+                is ListOfBrokersState.Success -> { DataBlock(state = state) }
+                is ListOfBrokersState.NoData -> { LoadingBlock() }
+                is ListOfBrokersState.Error -> { ErrorBlock() }
+            }
+        }
+    }
 }
