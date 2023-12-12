@@ -32,6 +32,6 @@ fun FloatingButton() {
 
 @Preview
 @Composable
-fun FloatingButtonPreview() {
+private fun FloatingButtonPreview() {
     FloatingButton()
 }

@@ -90,6 +90,6 @@ fun TopBar(name:String) {
 
 @Preview
 @Composable
-fun TopBarPreview() {
+private fun TopBarPreview() {
     TopBar(name = "Название раздела")
 }

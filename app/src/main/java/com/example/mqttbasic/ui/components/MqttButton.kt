@@ -37,7 +37,7 @@ fun MqttButton(modifier:Modifier = Modifier,text:String,onClick: () -> Unit) {
 
 @Preview
 @Composable
-fun MqttButtonPreview() {
+private fun MqttButtonPreview() {
     MqttButton(text = "Текст") {
         
     }

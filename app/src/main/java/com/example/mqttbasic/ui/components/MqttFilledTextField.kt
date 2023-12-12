@@ -24,7 +24,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -36,7 +35,7 @@ import com.example.mqttbasic.ui.theme.LightPurple
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MqttBasicTextField(
+fun MqttFilledTextField(
     modifier: Modifier = Modifier,
     value:String,
     enabled:Boolean = true,
@@ -50,31 +49,29 @@ fun MqttBasicTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier
+            .padding(top = 5.dp)
             .background(
-                color = Color.Transparent,
+                color = if (enabled) LightPurple else DisableGrey,
                 shape = RoundedCornerShape(15.dp)
-            )
-            .padding(top = 5.dp),
-        cursorBrush = SolidColor(LightPurple),
+            ),
+        cursorBrush = SolidColor(DarkPurple),
         visualTransformation = VisualTransformation.None,
         textStyle = TextStyle(
-            color = if (enabled) LightPurple else DisableGrey,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Medium
+            color = if (enabled) DarkPurple else DisableGrey,
+            fontSize = 18.sp
         ),
         // internal implementation of the BasicTextField will dispatch focus events
         interactionSource = interactionSource,
         enabled = enabled,
         singleLine = singleLine
     ) {
-        TextFieldDefaults.OutlinedTextFieldDecorationBox(
+        TextFieldDefaults.TextFieldDecorationBox(
             value = value,
             label = {
                 if (!labelText.isNullOrBlank()) {
                     Text(
                         text = labelText,
-                        color = if (enabled) LightPurple else DisableGrey,
-                        fontWeight = FontWeight.Medium
+                        color = if (enabled) DarkPurple else DisableGrey
                     )
                 }
             },
@@ -88,19 +85,18 @@ fun MqttBasicTextField(
             // keep vertical paddings but change the horizontal
             contentPadding =
             if (!labelText.isNullOrBlank())
-                TextFieldDefaults.textFieldWithLabelPadding(start = 20.dp, end = 10.dp, top = 5.dp)
+                TextFieldDefaults.textFieldWithLabelPadding(start = 10.dp, end = 10.dp, top = 8.dp)
             else
-                TextFieldDefaults.textFieldWithoutLabelPadding(start = 20.dp, end = 10.dp, top = 5.dp),
+                TextFieldDefaults.textFieldWithoutLabelPadding(start = 10.dp, end = 10.dp, top = 8.dp),
             container = {
-                Box(
-                    modifier = Modifier
-                        .padding(2.dp)
-                        .border(
-                            2.dp,
-                            if (enabled) LightPurple else DisableGrey,
-                            RoundedCornerShape(15.dp)
-                        )
-                )
+//                Box(
+//                    modifier = Modifier
+//                        .border(
+//                            2.dp,
+//                            if (enabled) DarkPurple else DisableGrey,
+//                            RoundedCornerShape(15.dp)
+//                        )
+//                )
             }
         )
     }
@@ -109,13 +105,13 @@ fun MqttBasicTextField(
 
 @Preview
 @Composable
-private fun MqttBasicTextFieldPreview() {
+private fun MqttFilledTextFieldPreview() {
     var text by remember { mutableStateOf("Текст") }
 
-    MqttBasicTextField(
+    MqttFilledTextField(
         value = text,
         onValueChange = {text = it},
-        labelText = "Лейбл",
+        labelText = "Text",
         enabled = true
     )
 }

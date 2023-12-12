@@ -1,7 +1,14 @@
 package com.example.mqttbasic.ui.scenes.createconnection
 
 import androidx.lifecycle.ViewModel
+import com.example.mqttbasic.base.UiEvent
+import com.example.mqttbasic.ui.scenes.listofbrokers.ListOfBrokersEvent
+import com.example.mqttbasic.ui.scenes.listofbrokers.ListOfBrokersState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import java.io.Console
+import java.lang.Exception
 import javax.inject.Inject
 
 @HiltViewModel
@@ -9,4 +16,45 @@ class CreateConnectionViewModel @Inject constructor(
 
 ) :ViewModel() {
 
+    private var _uiState: MutableStateFlow<CreateConnectionState> = MutableStateFlow(CreateConnectionState.MainState())
+    val uiState = _uiState.asStateFlow()
+
+    fun invokeEvent(event: UiEvent) {
+        when (val currentState = _uiState.value) {
+            is CreateConnectionState.MainState -> reduceEvent(event, currentState)
+        }
+    }
+
+    private fun reduceEvent(event: UiEvent, currentState:CreateConnectionState.MainState) {
+        when (event) {
+            is CreateConnectionEvent.NameFieldChanged -> {updateNameField(event.value, currentState)}
+            is CreateConnectionEvent.AddressFieldChanged -> {updateAddressField(event.value, currentState)}
+            is CreateConnectionEvent.PortFieldChanged -> {updatePortField(event.value, currentState)}
+
+            is CreateConnectionEvent.AuthCheckboxClicked -> {}
+            is CreateConnectionEvent.UserNameFieldChanged -> {}
+            is CreateConnectionEvent.UserPasswordFieldChanged -> {}
+        }
+    }
+
+    private fun updateNameField(value: String, state:CreateConnectionState.MainState) {
+        _uiState.value = state.copy(
+            name = value
+        )
+    }
+
+    private fun updateAddressField(value: String, state:CreateConnectionState.MainState) {
+        _uiState.value = state.copy(
+            address = value
+        )
+    }
+
+    private fun updatePortField(value: String, state:CreateConnectionState.MainState) {
+        try {
+            val parsedValue = value.toInt(10)
+            _uiState.value = state.copy(
+                address = value
+            )
+        } catch (_:Exception) {}
+    }
 }

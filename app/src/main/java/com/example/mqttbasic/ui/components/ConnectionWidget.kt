@@ -73,6 +73,6 @@ fun ConnectionWidget(connection: Connection) {
 
 @Preview
 @Composable
-fun ConnectionWidgetPreview() {
+private fun ConnectionWidgetPreview() {
     ConnectionWidget(connection = Connection(1,"Подключение", "sample.com", 1883, null, null, true, "#"))
 }
