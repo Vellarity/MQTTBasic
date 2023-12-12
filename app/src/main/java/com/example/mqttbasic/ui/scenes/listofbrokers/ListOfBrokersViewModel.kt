@@ -58,6 +58,14 @@ class ListOfBrokersViewModel @Inject constructor(
     private fun getConnectionsList() {
         viewModelScope.launch {
             val listOfConnections = db.connectionDao().getConnections()
+
+            if (listOfConnections.isEmpty()) {
+                _uiState.value = ListOfBrokersState.NoData
+            } else {
+               _uiState.value = ListOfBrokersState.Success(
+                   listOfConnections
+               )
+            }
         }
     }
 
