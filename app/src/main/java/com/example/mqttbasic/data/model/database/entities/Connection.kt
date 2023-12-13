@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "connection")
 data class Connection(
     @PrimaryKey(autoGenerate = true)
-    val id: Int,
+    val id: Int? = null,
     val name: String,
     val address:String,
     val port:Int,
@@ -17,16 +17,7 @@ data class Connection(
     val userPassword:String?,
     val establishConnection:Boolean,
     @ColumnInfo(name = "actual_topic", defaultValue = "#")
-    val actualTopic:String?,
+    val actualTopic:String? = "#",
+    @ColumnInfo(name="image_source")
+    val imageSource:String? = null
 )
-
-/*
-data class Connection(
-    val name:String,
-    val address:String,
-    val port:Int,
-    val userName:String?,
-    val password: String?,
-    val establishConnection:Boolean = false
-)
- */

@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.example.mqttbasic.R
 import com.example.mqttbasic.ui.theme.DarkPurple
 import com.example.mqttbasic.ui.theme.LightPurple
-import com.example.mqttbasic.ui.theme.pulsateClick
+import com.example.mqttbasic.ui.theme.effects.pulsateClick
 
 @Composable
 fun MqttCheckbox(modifier:Modifier = Modifier ,checked:Boolean, onCheckedChange:(Boolean) -> Unit) {
@@ -37,14 +37,14 @@ fun MqttCheckbox(modifier:Modifier = Modifier ,checked:Boolean, onCheckedChange:
         contentAlignment = Alignment.Center
     ) {
         if (checked)
-        Icon(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(3.dp),
-            imageVector = ImageVector.vectorResource(id = R.drawable.check),
-            contentDescription = null,
-            tint = DarkPurple
-        )
+            Icon(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(3.dp),
+                imageVector = ImageVector.vectorResource(id = R.drawable.check),
+                contentDescription = null,
+                tint = DarkPurple
+            )
     }
 }
 @Preview

@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.mqttbasic.ui.theme.pulsateClick
+import com.example.mqttbasic.ui.theme.effects.pulsateClick
 
 @Composable
 fun MqttButton(modifier:Modifier = Modifier,text:String,onClick: () -> Unit) {

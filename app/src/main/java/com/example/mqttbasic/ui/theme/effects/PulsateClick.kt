@@ -1,4 +1,4 @@
-package com.example.mqttbasic.ui.theme
+package com.example.mqttbasic.ui.theme.effects
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable

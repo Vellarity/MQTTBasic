@@ -2,6 +2,7 @@ package com.example.mqttbasic.ui.scenes.createconnection
 
 import androidx.lifecycle.ViewModel
 import com.example.mqttbasic.base.UiEvent
+import com.example.mqttbasic.data.model.database.entities.Connection
 import com.example.mqttbasic.ui.scenes.listofbrokers.ListOfBrokersEvent
 import com.example.mqttbasic.ui.scenes.listofbrokers.ListOfBrokersState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,6 +35,8 @@ class CreateConnectionViewModel @Inject constructor(
             is CreateConnectionEvent.AuthCheckboxClicked -> {updateAuthClicked(event.checked, currentState)}
             is CreateConnectionEvent.UserNameFieldChanged -> {updateUserNameField(event.value, currentState)}
             is CreateConnectionEvent.UserPasswordFieldChanged -> {updateUserPasswordField(event.value, currentState)}
+
+            is CreateConnectionEvent.CreateConnectionClicked -> {tryToConnectAndWriteData(currentState)}
         }
     }
 
@@ -60,7 +63,7 @@ class CreateConnectionViewModel @Inject constructor(
 
     private fun updateAuthClicked(value:Boolean, state:CreateConnectionState.MainState) {
         _uiState.value = state.copy(
-            authChecked = !value
+            authChecked = value
         )
     }
 
@@ -73,6 +76,17 @@ class CreateConnectionViewModel @Inject constructor(
     private fun updateUserPasswordField(value:String, state:CreateConnectionState.MainState) {
         _uiState.value = state.copy(
             userPassword = value
+        )
+    }
+
+    private fun tryToConnectAndWriteData(state:CreateConnectionState.MainState) {
+        var connection = Connection(
+            name = state.name,
+            address = state.address,
+            port = state.port,
+            userName = if (state.authChecked) state.userName else null,
+            userPassword = if (state.authChecked) state.userPassword else null,
+            establishConnection = false
         )
     }
 }
