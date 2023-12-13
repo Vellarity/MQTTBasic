@@ -31,9 +31,9 @@ class CreateConnectionViewModel @Inject constructor(
             is CreateConnectionEvent.AddressFieldChanged -> {updateAddressField(event.value, currentState)}
             is CreateConnectionEvent.PortFieldChanged -> {updatePortField(event.value, currentState)}
 
-            is CreateConnectionEvent.AuthCheckboxClicked -> {}
-            is CreateConnectionEvent.UserNameFieldChanged -> {}
-            is CreateConnectionEvent.UserPasswordFieldChanged -> {}
+            is CreateConnectionEvent.AuthCheckboxClicked -> {updateAuthClicked(event.checked, currentState)}
+            is CreateConnectionEvent.UserNameFieldChanged -> {updateUserNameField(event.value, currentState)}
+            is CreateConnectionEvent.UserPasswordFieldChanged -> {updateUserPasswordField(event.value, currentState)}
         }
     }
 
@@ -56,5 +56,23 @@ class CreateConnectionViewModel @Inject constructor(
                 address = value
             )
         } catch (_:Exception) {}
+    }
+
+    private fun updateAuthClicked(value:Boolean, state:CreateConnectionState.MainState) {
+        _uiState.value = state.copy(
+            authChecked = !value
+        )
+    }
+
+    private fun updateUserNameField(value:String, state:CreateConnectionState.MainState) {
+        _uiState.value = state.copy(
+            userName = value
+        )
+    }
+
+    private fun updateUserPasswordField(value:String, state:CreateConnectionState.MainState) {
+        _uiState.value = state.copy(
+            userPassword = value
+        )
     }
 }

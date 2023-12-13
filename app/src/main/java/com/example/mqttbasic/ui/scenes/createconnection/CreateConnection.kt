@@ -5,10 +5,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
@@ -28,9 +30,11 @@ import androidx.navigation.NavHostController
 import com.example.mqttbasic.ui.components.FloatingButton
 import com.example.mqttbasic.ui.components.MqttBasicTextField
 import com.example.mqttbasic.ui.components.MqttButton
+import com.example.mqttbasic.ui.components.MqttCheckbox
 import com.example.mqttbasic.ui.components.TopBar
 import com.example.mqttbasic.ui.theme.DarkGrey
 import com.example.mqttbasic.ui.theme.LightGrey
+import com.example.mqttbasic.ui.theme.LightPurple
 
 @Composable
 fun CreateConnection(navController:NavHostController, viewModel:CreateConnectionViewModel = hiltViewModel<CreateConnectionViewModel>()) {
@@ -128,6 +132,17 @@ private fun AuthBlock(modifier:Modifier = Modifier, onEvent:(CreateConnectionEve
                 color = Color.White,
                 fontWeight = FontWeight.Medium,
                 fontSize = 20.sp
+            )
+            MqttCheckbox(
+                modifier = Modifier
+                    .size(30.dp)
+                    .background(LightPurple, RoundedCornerShape(8.dp)),
+                checked = state.authChecked,
+                onCheckedChange = {
+                    checked -> onEvent(
+                    CreateConnectionEvent.AuthCheckboxClicked(checked)
+                    )
+                }
             )
         }
         MqttBasicTextField(
