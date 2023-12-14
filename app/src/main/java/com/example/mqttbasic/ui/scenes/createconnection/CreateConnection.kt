@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.mqttbasic.ui.components.FloatingButton
 import com.example.mqttbasic.ui.components.MqttBasicTextField
 import com.example.mqttbasic.ui.components.MqttButton
@@ -37,41 +38,55 @@ import com.example.mqttbasic.ui.theme.LightGrey
 import com.example.mqttbasic.ui.theme.LightPurple
 
 @Composable
-fun CreateConnection(navController:NavHostController, viewModel:CreateConnectionViewModel = hiltViewModel<CreateConnectionViewModel>()) {
+fun CreateConnection(
+    navController: NavHostController,
+    viewModel: CreateConnectionViewModel = hiltViewModel<CreateConnectionViewModel>()
+) {
     val state = viewModel.uiState.collectAsState().value
 
     when (state) {
-        is CreateConnectionState.MainState -> CreateConnectionContent(state = state, viewModel::invokeEvent)
+        is CreateConnectionState.MainState -> CreateConnectionContent(
+            state = state,
+            viewModel::invokeEvent,
+            navController
+        )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateConnectionContent(state:CreateConnectionState.MainState, onEvent:(CreateConnectionEvent) -> Unit) {
+fun CreateConnectionContent(
+    state: CreateConnectionState.MainState,
+    onEvent: (CreateConnectionEvent) -> Unit,
+    navController: NavHostController
+) {
     Scaffold(
         containerColor = LightGrey,
         topBar = { TopBar(name = "Новое подключение") },
         contentWindowInsets = WindowInsets(10.dp, 10.dp, 10.dp, 20.dp),
         floatingActionButtonPosition = FabPosition.End
-    ) {
-        innerPadding ->
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            PrimaryBlock( modifier = Modifier.weight(1f), onEvent , state = state)
-            AuthBlock(modifier = Modifier.weight(1f), onEvent ,state = state)
+            PrimaryBlock(modifier = Modifier.weight(1f), onEvent, state = state)
+            AuthBlock(modifier = Modifier.weight(1f), onEvent, state = state)
             MqttButton(text = "Подключиться") {
-                
+                onEvent(CreateConnectionEvent.CreateConnectionClicked(navController))
             }
         }
     }
 }
 
 @Composable
-private fun PrimaryBlock(modifier:Modifier = Modifier, onEvent:(CreateConnectionEvent) -> Unit, state: CreateConnectionState.MainState) {
+private fun PrimaryBlock(
+    modifier: Modifier = Modifier,
+    onEvent: (CreateConnectionEvent) -> Unit,
+    state: CreateConnectionState.MainState
+) {
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -90,7 +105,7 @@ private fun PrimaryBlock(modifier:Modifier = Modifier, onEvent:(CreateConnection
                 .fillMaxWidth()
                 .height(60.dp),
             value = state.name,
-            onValueChange = {value -> onEvent(CreateConnectionEvent.NameFieldChanged(value))},
+            onValueChange = { value -> onEvent(CreateConnectionEvent.NameFieldChanged(value)) },
             labelText = "Название подключения"
         )
         MqttBasicTextField(
@@ -98,7 +113,7 @@ private fun PrimaryBlock(modifier:Modifier = Modifier, onEvent:(CreateConnection
                 .fillMaxWidth()
                 .height(60.dp),
             value = state.address,
-            onValueChange = {value -> onEvent(CreateConnectionEvent.AddressFieldChanged(value))},
+            onValueChange = { value -> onEvent(CreateConnectionEvent.AddressFieldChanged(value)) },
             labelText = "Адрес"
         )
         MqttBasicTextField(
@@ -106,14 +121,18 @@ private fun PrimaryBlock(modifier:Modifier = Modifier, onEvent:(CreateConnection
                 .fillMaxWidth()
                 .height(60.dp),
             value = state.port.toString(),
-            onValueChange = {value -> onEvent(CreateConnectionEvent.PortFieldChanged(value))},
+            onValueChange = { value -> onEvent(CreateConnectionEvent.PortFieldChanged(value)) },
             labelText = "Порт"
         )
     }
 }
 
 @Composable
-private fun AuthBlock(modifier:Modifier = Modifier, onEvent:(CreateConnectionEvent) -> Unit, state: CreateConnectionState.MainState) {
+private fun AuthBlock(
+    modifier: Modifier = Modifier,
+    onEvent: (CreateConnectionEvent) -> Unit,
+    state: CreateConnectionState.MainState
+) {
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -138,9 +157,9 @@ private fun AuthBlock(modifier:Modifier = Modifier, onEvent:(CreateConnectionEve
                     .size(30.dp)
                     .background(LightPurple, RoundedCornerShape(8.dp)),
                 checked = state.authChecked,
-                onCheckedChange = {
-                    checked -> onEvent(
-                    CreateConnectionEvent.AuthCheckboxClicked(checked)
+                onCheckedChange = { checked ->
+                    onEvent(
+                        CreateConnectionEvent.AuthCheckboxClicked(checked)
                     )
                 }
             )
@@ -150,7 +169,7 @@ private fun AuthBlock(modifier:Modifier = Modifier, onEvent:(CreateConnectionEve
                 .fillMaxWidth()
                 .height(60.dp),
             value = state.userName ?: "",
-            onValueChange = {value -> onEvent(CreateConnectionEvent.UserNameFieldChanged(value))},
+            onValueChange = { value -> onEvent(CreateConnectionEvent.UserNameFieldChanged(value)) },
             labelText = "Имя пользователя",
             enabled = state.authChecked
         )
@@ -159,7 +178,7 @@ private fun AuthBlock(modifier:Modifier = Modifier, onEvent:(CreateConnectionEve
                 .fillMaxWidth()
                 .height(60.dp),
             value = state.userPassword ?: "",
-            onValueChange = {value -> onEvent(CreateConnectionEvent.UserPasswordFieldChanged(value))},
+            onValueChange = { value -> onEvent(CreateConnectionEvent.UserPasswordFieldChanged(value)) },
             labelText = "Пароль пользователя",
             enabled = state.authChecked
         )
@@ -171,5 +190,5 @@ private fun AuthBlock(modifier:Modifier = Modifier, onEvent:(CreateConnectionEve
 fun CreateConnectionPreview() {
     val state = CreateConnectionState.MainState()
 
-    CreateConnectionContent(state = state, {})
+    CreateConnectionContent(state = state, {}, rememberNavController())
 }

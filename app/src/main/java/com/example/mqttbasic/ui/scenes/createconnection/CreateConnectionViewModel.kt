@@ -1,20 +1,24 @@
 package com.example.mqttbasic.ui.scenes.createconnection
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavHostController
 import com.example.mqttbasic.base.UiEvent
+import com.example.mqttbasic.data.model.database.AppDatabase
 import com.example.mqttbasic.data.model.database.entities.Connection
 import com.example.mqttbasic.ui.scenes.listofbrokers.ListOfBrokersEvent
 import com.example.mqttbasic.ui.scenes.listofbrokers.ListOfBrokersState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.io.Console
 import java.lang.Exception
 import javax.inject.Inject
 
 @HiltViewModel
 class CreateConnectionViewModel @Inject constructor(
-
+    val db: AppDatabase
 ) :ViewModel() {
 
     private var _uiState: MutableStateFlow<CreateConnectionState> = MutableStateFlow(CreateConnectionState.MainState())
@@ -36,7 +40,7 @@ class CreateConnectionViewModel @Inject constructor(
             is CreateConnectionEvent.UserNameFieldChanged -> {updateUserNameField(event.value, currentState)}
             is CreateConnectionEvent.UserPasswordFieldChanged -> {updateUserPasswordField(event.value, currentState)}
 
-            is CreateConnectionEvent.CreateConnectionClicked -> {tryToConnectAndWriteData(currentState)}
+            is CreateConnectionEvent.CreateConnectionClicked -> {tryToConnectAndWriteData(currentState, event.navController)}
         }
     }
 
@@ -79,14 +83,22 @@ class CreateConnectionViewModel @Inject constructor(
         )
     }
 
-    private fun tryToConnectAndWriteData(state:CreateConnectionState.MainState) {
-        var connection = Connection(
-            name = state.name,
-            address = state.address,
-            port = state.port,
-            userName = if (state.authChecked) state.userName else null,
-            userPassword = if (state.authChecked) state.userPassword else null,
-            establishConnection = false
-        )
+    private fun tryToConnectAndWriteData(state:CreateConnectionState.MainState, navController:NavHostController) {
+        viewModelScope.launch {
+            val connection = Connection(
+                name = state.name,
+                address = state.address,
+                port = state.port,
+                userName = if (state.authChecked) state.userName else null,
+                userPassword = if (state.authChecked) state.userPassword else null,
+                establishConnection = false
+            )
+
+            val newID = db.connectionDao().insertConnections(connection)
+
+            if (newID[0] > 0) {
+                navController.navigate("list_of_brokers")
+            }
+        }
     }
 }

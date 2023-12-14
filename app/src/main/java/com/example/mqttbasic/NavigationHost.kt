@@ -22,6 +22,6 @@ fun MqttBasicNavHost(navController: NavHostController) {
         composable("main") { MainPage(navController) }
         composable("list_of_brokers") { ListOfBrokers(navController, hiltViewModel<ListOfBrokersViewModel>()) }
         composable("create_connection"){ CreateConnection(navController, hiltViewModel<CreateConnectionViewModel>()) }
-        composable("connectionInfo/{brokerId}", arguments = listOf(navArgument("brokerId") { type = NavType.IntType})) {backStackEntry -> ConnectionInfo(backStackEntry.arguments!!.getInt("brokerId"), navController, hiltViewModel<ConnectionInfoViewModel>())}
+        composable("connection_info/{brokerId}", arguments = listOf(navArgument("brokerId") { type = NavType.IntType})) {backStackEntry -> ConnectionInfo(backStackEntry.arguments!!.getInt("brokerId"), navController, hiltViewModel<ConnectionInfoViewModel>())}
     }
 }

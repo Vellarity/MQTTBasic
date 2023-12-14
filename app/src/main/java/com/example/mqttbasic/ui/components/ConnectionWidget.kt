@@ -34,9 +34,9 @@ import com.example.mqttbasic.ui.theme.LightRed
 //)
 
 @Composable
-fun ConnectionWidget(connection: Connection) {
+fun ConnectionWidget(modifier:Modifier = Modifier ,connection: Connection) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(80.dp)
             .background(

@@ -13,7 +13,7 @@ interface ConnectionDao {
     suspend fun getConnections(): List<Connection>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertConnections(vararg connections:Connection)
+    suspend fun insertConnections(vararg connections:Connection):LongArray
 
     @Query("SELECT * FROM connection WHERE id = :id")
     suspend fun getConnectionById(id:Int): Connection

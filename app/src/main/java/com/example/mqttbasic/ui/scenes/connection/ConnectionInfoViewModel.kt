@@ -1,5 +1,6 @@
 package com.example.mqttbasic.ui.scenes.connection
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mqttbasic.base.UiEvent
@@ -22,7 +23,7 @@ class ConnectionInfoViewModel @Inject constructor(
     fun invokeEvent(event: ConnectionInfoEvent) {
         when (val currentState = _uiState.value) {
             is ConnectionInfoState.FetchingDbData -> {reduceEvent(event, currentState)}
-            is ConnectionInfoState.ConnectingToBroker -> {/*reduceEvent(event)*/}
+            is ConnectionInfoState.ConnectingToBroker -> {reduceEvent(event, currentState)}
             is ConnectionInfoState.MainState -> {}
         }
     }
@@ -34,11 +35,31 @@ class ConnectionInfoViewModel @Inject constructor(
         }
     }
 
+    private fun reduceEvent(event: ConnectionInfoEvent, state:ConnectionInfoState.ConnectingToBroker) {
+        when (event) {
+            is ConnectionInfoEvent.EnterConnectionScreen -> {}
+            is ConnectionInfoEvent.ImageSelected -> {updateConnectionImage(event.uri, state)}
+            else -> {}
+        }
+    }
+
     private fun getBrokerFromDb(brokerId: Int) {
         viewModelScope.launch {
             val broker:Connection = db.connectionDao().getConnectionById(brokerId)
 
             _uiState.value = ConnectionInfoState.ConnectingToBroker(broker)
+        }
+    }
+
+    private fun updateConnectionImage(uri: Uri, state:ConnectionInfoState.ConnectingToBroker) {
+        viewModelScope.launch {
+            val id = db.connectionDao()
+                .insertConnections(state.connectionInfo.copy(imageSource = uri.toString()))
+
+            if (id[0] > 0) {
+                _uiState.value =
+                    state.copy(connectionInfo = state.connectionInfo.copy(imageSource = uri.toString()))
+            }
         }
     }
 

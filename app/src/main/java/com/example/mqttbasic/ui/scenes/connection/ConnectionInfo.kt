@@ -13,15 +13,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -29,11 +26,9 @@ import androidx.navigation.NavHostController
 import com.example.mqttbasic.ui.components.BrokerInfoWidget
 import com.example.mqttbasic.ui.components.BrokerInfoWidgetBlank
 import com.example.mqttbasic.ui.components.TopBar
-import com.example.mqttbasic.ui.scenes.listofbrokers.ListOfBrokersState
 import com.example.mqttbasic.ui.theme.DarkGrey
 import com.example.mqttbasic.ui.theme.LightGrey
 import com.example.mqttbasic.ui.theme.effects.shimmerEffect
-import javax.annotation.meta.When
 
 @Composable
 fun ConnectionInfo(
@@ -101,7 +96,7 @@ private fun ConnectingToBrokerBlock(state:ConnectionInfoState.ConnectingToBroker
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ){
-        BrokerInfoWidget(broker = state.connectionInfo, onImageSelected = {})
+        BrokerInfoWidget(broker = state.connectionInfo, onImageSelected = {uri -> onEvent(ConnectionInfoEvent.ImageSelected(uri))})
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()

@@ -2,6 +2,7 @@ package com.example.mqttbasic.ui.scenes.listofbrokers
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,10 +17,12 @@ import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -40,6 +43,12 @@ import com.example.mqttbasic.ui.theme.LightGrey
 fun ListOfBrokers(navController:NavHostController, viewModel: ListOfBrokersViewModel = hiltViewModel<ListOfBrokersViewModel>()) {
     val state = viewModel.uiState.collectAsState().value
 
+    ListOfBrokersContent(state = state, viewModel::invokeEvent, navController)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ListOfBrokersContent(state:ListOfBrokersState, onEvent:(ListOfBrokersEvent) -> Unit, navController: NavHostController) {
     Scaffold(
         containerColor = LightGrey,
         topBar = {TopBar(name = "Подключения")},
@@ -47,7 +56,7 @@ fun ListOfBrokers(navController:NavHostController, viewModel: ListOfBrokersViewM
         floatingActionButton = {FloatingButton()},
         floatingActionButtonPosition = FabPosition.End
     ) {
-        innerPadding ->
+            innerPadding ->
         Box(
             modifier = Modifier
                 .padding(innerPadding)
@@ -55,9 +64,9 @@ fun ListOfBrokers(navController:NavHostController, viewModel: ListOfBrokersViewM
                 .fillMaxSize()
         ) {
             when(state) {
-                is ListOfBrokersState.Loading -> { LoadingBlock() }
-                is ListOfBrokersState.Success -> { DataBlock(state = state) }
-                is ListOfBrokersState.NoData -> { LoadingBlock() }
+                is ListOfBrokersState.Loading -> { LoadingBlock(onEvent) }
+                is ListOfBrokersState.Success -> { DataBlock(state = state, navController) }
+                is ListOfBrokersState.NoData -> { NoDataBlock() }
                 is ListOfBrokersState.Error -> { ErrorBlock() }
             }
         }
@@ -65,7 +74,11 @@ fun ListOfBrokers(navController:NavHostController, viewModel: ListOfBrokersViewM
 }
 
 @Composable
-fun LoadingBlock() {
+private fun LoadingBlock(onEvent:(ListOfBrokersEvent) -> Unit) {
+    LaunchedEffect(key1 = null, block = {
+        onEvent(ListOfBrokersEvent.EnterScreen)
+    })
+
     Column(
         modifier = Modifier
             .fillMaxSize(),
@@ -82,18 +95,37 @@ fun LoadingBlock() {
 }
 
 @Composable
-fun DataBlock(state:ListOfBrokersState.Success) {
+private fun DataBlock(state:ListOfBrokersState.Success, navController:NavHostController) {
     LazyColumn(
+        modifier = Modifier
+            .padding(10.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        items(state.listOfBrokers) {broker ->
-            ConnectionWidget(connection = broker)
+        items(state.listOfBrokers, {broker -> broker.id!!}) {broker ->
+            ConnectionWidget( modifier = Modifier.clickable { navController.navigate("connection_info/${broker.id!!}") }, connection = broker)
         }
     }
 }
 
 @Composable
-fun ErrorBlock() {
+private fun NoDataBlock() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ){
+        Text(
+            text = "Нет данных",
+            fontSize = 36.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+    }
+}
+
+@Composable
+private fun ErrorBlock() {
     Column(
         modifier = Modifier
             .fillMaxSize(),
@@ -116,26 +148,5 @@ fun ErrorBlock() {
 private fun ListOfBrokersPagePreview() {
     val state:ListOfBrokersState = ListOfBrokersState.Error
 
-    Scaffold(
-        containerColor = LightGrey,
-        topBar = {TopBar(name = "Подключения")},
-        contentWindowInsets = WindowInsets(10.dp, 10.dp, 10.dp, 20.dp),
-        floatingActionButton = {FloatingButton()},
-        floatingActionButtonPosition = FabPosition.End
-    ) {
-            innerPadding ->
-        Box(
-            modifier = Modifier
-                .padding(innerPadding)
-                .background(DarkGrey, RoundedCornerShape(20.dp))
-                .fillMaxSize()
-        ) {
-            when(state) {
-                is ListOfBrokersState.Loading -> { LoadingBlock() }
-                is ListOfBrokersState.Success -> { DataBlock(state = state) }
-                is ListOfBrokersState.NoData -> { LoadingBlock() }
-                is ListOfBrokersState.Error -> { ErrorBlock() }
-            }
-        }
-    }
+    ListOfBrokersContent(state = state, onEvent = {}, rememberNavController())
 }

@@ -73,9 +73,9 @@ fun BrokerInfoWidget(modifier:Modifier = Modifier, broker: Connection, onImageSe
                             )
                         )
                     },
-                model = ImageRequest.Builder(context).data(imageUri).build(),
-                contentDescription = null,
-                contentScale = ContentScale.Inside
+                model = ImageRequest.Builder(context).data(broker.imageSource).crossfade(true).build(),
+                contentDescription = "123",
+                contentScale = ContentScale.Crop
             )
         else
             Box(
