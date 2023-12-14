@@ -102,7 +102,7 @@ private fun DataBlock(state:ListOfBrokersState.Success, navController:NavHostCon
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         items(state.listOfBrokers, {broker -> broker.id!!}) {broker ->
-            ConnectionWidget( modifier = Modifier.clickable { navController.navigate("connection_info/${broker.id!!}") }, connection = broker)
+            ConnectionWidget( modifier = Modifier.clickable { navController.navigate("connection_info/${broker.id!!}") }, broker = broker)
         }
     }
 }
