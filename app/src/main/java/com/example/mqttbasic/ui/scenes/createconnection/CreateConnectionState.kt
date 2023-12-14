@@ -10,5 +10,6 @@ sealed class CreateConnectionState: UiState {
         val authChecked:Boolean = false,
         val userName:String? = null,
         val userPassword:String? = null,
+        val connected:Boolean = false
     ):CreateConnectionState()
 }

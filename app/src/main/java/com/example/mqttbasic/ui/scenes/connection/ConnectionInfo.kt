@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.mqttbasic.ui.components.BrokerInfoWidget
 import com.example.mqttbasic.ui.components.BrokerInfoWidgetBlank
@@ -36,7 +37,7 @@ fun ConnectionInfo(
     navController:NavHostController,
     viewModel:ConnectionInfoViewModel = hiltViewModel<ConnectionInfoViewModel>()
 ) {
-    val state = viewModel.uiState.collectAsState().value
+    val state = viewModel.uiState.collectAsStateWithLifecycle().value
 
     ConnectionInfoContent(state = state, brokerId = brokerId, onEvent = viewModel::invokeEvent)
 }

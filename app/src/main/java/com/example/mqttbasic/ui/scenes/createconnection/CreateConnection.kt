@@ -1,5 +1,6 @@
 package com.example.mqttbasic.ui.scenes.createconnection
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,15 +18,18 @@ import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.mqttbasic.ui.components.FloatingButton
@@ -42,7 +46,7 @@ fun CreateConnection(
     navController: NavHostController,
     viewModel: CreateConnectionViewModel = hiltViewModel<CreateConnectionViewModel>()
 ) {
-    val state = viewModel.uiState.collectAsState().value
+    val state = viewModel.uiState.collectAsStateWithLifecycle().value
 
     when (state) {
         is CreateConnectionState.MainState -> CreateConnectionContent(
@@ -60,6 +64,15 @@ fun CreateConnectionContent(
     onEvent: (CreateConnectionEvent) -> Unit,
     navController: NavHostController
 ) {
+    val context = LocalContext.current
+   /* LaunchedEffect(state.connected) {
+        Toast.makeText(
+            context,
+            if (state.connected) "Соединение успешное" else "Соединение неудачное",
+            Toast.LENGTH_SHORT,
+        ).show()
+    }*/
+
     Scaffold(
         containerColor = LightGrey,
         topBar = { TopBar(name = "Новое подключение") },
@@ -75,7 +88,7 @@ fun CreateConnectionContent(
             PrimaryBlock(modifier = Modifier.weight(1f), onEvent, state = state)
             AuthBlock(modifier = Modifier.weight(1f), onEvent, state = state)
             MqttButton(text = "Подключиться") {
-                onEvent(CreateConnectionEvent.CreateConnectionClicked(navController))
+                onEvent(CreateConnectionEvent.CreateConnectionClicked(navController, context))
             }
         }
     }

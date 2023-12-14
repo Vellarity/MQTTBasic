@@ -29,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.mqttbasic.ui.components.ConnectionWidget
@@ -41,7 +42,7 @@ import com.example.mqttbasic.ui.theme.LightGrey
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListOfBrokers(navController:NavHostController, viewModel: ListOfBrokersViewModel = hiltViewModel<ListOfBrokersViewModel>()) {
-    val state = viewModel.uiState.collectAsState().value
+    val state = viewModel.uiState.collectAsStateWithLifecycle().value
 
     ListOfBrokersContent(state = state, viewModel::invokeEvent, navController)
 }

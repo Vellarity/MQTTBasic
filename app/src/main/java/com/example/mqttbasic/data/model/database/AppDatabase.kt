@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.Executors
 
-@Database(entities = [Connection::class, Message::class], version = 2)
+@Database(entities = [Connection::class, Message::class], version = 1)
 abstract class AppDatabase: RoomDatabase() {
     abstract fun connectionDao(): ConnectionDao
     abstract fun messageDao(): MessageDao

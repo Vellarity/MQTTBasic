@@ -1,20 +1,27 @@
 package com.example.mqttbasic.ui.scenes.createconnection
 
+import android.content.Context
+import android.widget.Toast
+import androidx.compose.runtime.currentCompositionLocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.example.mqttbasic.base.UiEvent
 import com.example.mqttbasic.data.model.database.AppDatabase
 import com.example.mqttbasic.data.model.database.entities.Connection
-import com.example.mqttbasic.ui.scenes.listofbrokers.ListOfBrokersEvent
-import com.example.mqttbasic.ui.scenes.listofbrokers.ListOfBrokersState
+import com.example.mqttbasic.ui.scenes.connection.ConnectionInfoEffect
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.io.Console
-import java.lang.Exception
+import org.eclipse.paho.android.service.MqttAndroidClient
+import org.eclipse.paho.client.mqttv3.IMqttActionListener
+import org.eclipse.paho.client.mqttv3.IMqttToken
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import javax.inject.Inject
+import kotlin.Exception
 
 @HiltViewModel
 class CreateConnectionViewModel @Inject constructor(
@@ -40,7 +47,7 @@ class CreateConnectionViewModel @Inject constructor(
             is CreateConnectionEvent.UserNameFieldChanged -> {updateUserNameField(event.value, currentState)}
             is CreateConnectionEvent.UserPasswordFieldChanged -> {updateUserPasswordField(event.value, currentState)}
 
-            is CreateConnectionEvent.CreateConnectionClicked -> {tryToConnectAndWriteData(currentState, event.navController)}
+            is CreateConnectionEvent.CreateConnectionClicked -> {tryToConnectAndWriteData(currentState, event.navController, event.context)}
         }
     }
 
@@ -83,20 +90,43 @@ class CreateConnectionViewModel @Inject constructor(
         )
     }
 
-    private fun tryToConnectAndWriteData(state:CreateConnectionState.MainState, navController:NavHostController) {
+    private fun tryToConnectAndWriteData(state:CreateConnectionState.MainState, navController:NavHostController, context:Context) {
         viewModelScope.launch {
-            val connection = Connection(
-                name = state.name,
-                address = state.address,
-                port = state.port,
-                userName = if (state.authChecked) state.userName else null,
-                userPassword = if (state.authChecked) state.userPassword else null,
-                establishConnection = false
-            )
+            var establishConnection = false
+            val mqttClient = MqttAndroidClient(null, "tcp://${state.address}:${state.port}", state.name)
 
-            val newID = db.connectionDao().insertConnections(connection)
+            try {
+                mqttClient.connect(MqttConnectOptions(), null, object: IMqttActionListener{
+                    override fun onSuccess(asyncActionToken: IMqttToken?) {
+                        establishConnection = true
+                    }
 
-            if (newID[0] > 0) {
+                    override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                        establishConnection = false
+                    }
+                })
+            } catch (_:Exception) {}
+
+            var newID:Long = 0
+            if (establishConnection) {
+                val connection = Connection(
+                    name = state.name,
+                    address = state.address,
+                    port = state.port,
+                    userName = if (state.authChecked) state.userName else null,
+                    userPassword = if (state.authChecked) state.userPassword else null,
+                    establishConnection = establishConnection
+                )
+                newID = db.connectionDao().insertConnections(connection)[0]
+            }
+
+            Toast.makeText(
+                context,
+                if (state.connected) "Успешное соединение" else "Не удалось подключиться",
+                Toast.LENGTH_SHORT,
+            ).show()
+
+            if (newID > 0) {
                 navController.navigate("list_of_brokers")
             }
         }
