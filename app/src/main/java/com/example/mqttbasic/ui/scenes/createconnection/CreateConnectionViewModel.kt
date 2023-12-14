@@ -1,6 +1,7 @@
 package com.example.mqttbasic.ui.scenes.createconnection
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.currentCompositionLocalContext
 import androidx.lifecycle.ViewModel
@@ -10,16 +11,14 @@ import com.example.mqttbasic.base.UiEvent
 import com.example.mqttbasic.data.model.database.AppDatabase
 import com.example.mqttbasic.data.model.database.entities.Connection
 import com.example.mqttbasic.ui.scenes.connection.ConnectionInfoEffect
+import com.hivemq.client.mqtt.MqttClient
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import org.eclipse.paho.android.service.MqttAndroidClient
-import org.eclipse.paho.client.mqttv3.IMqttActionListener
-import org.eclipse.paho.client.mqttv3.IMqttToken
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions
+import java.util.UUID
 import javax.inject.Inject
 import kotlin.Exception
 
@@ -67,7 +66,7 @@ class CreateConnectionViewModel @Inject constructor(
         try {
             val parsedValue = value.toInt(10)
             _uiState.value = state.copy(
-                address = value
+                port = parsedValue
             )
         } catch (_:Exception) {}
     }
@@ -93,19 +92,28 @@ class CreateConnectionViewModel @Inject constructor(
     private fun tryToConnectAndWriteData(state:CreateConnectionState.MainState, navController:NavHostController, context:Context) {
         viewModelScope.launch {
             var establishConnection = false
-            val mqttClient = MqttAndroidClient(null, "tcp://${state.address}:${state.port}", state.name)
+            val clientBuild = MqttClient.builder()
+                .identifier(UUID.randomUUID().toString())
+                .serverHost(state.address)
+                .serverPort(state.port)
+                .useMqttVersion3()
+                .buildBlocking()
 
             try {
-                mqttClient.connect(MqttConnectOptions(), null, object: IMqttActionListener{
-                    override fun onSuccess(asyncActionToken: IMqttToken?) {
-                        establishConnection = true
-                    }
-
-                    override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
-                        establishConnection = false
-                    }
-                })
-            } catch (_:Exception) {}
+                clientBuild.connectWith().let {
+                    if (state.authChecked and !state.userName.isNullOrBlank() and !state.userPassword.isNullOrBlank())
+                        it.simpleAuth()
+                            .username(state.userName!!)
+                            .password(state.userPassword!!.toByteArray())
+                            .applySimpleAuth()
+                    else
+                        it
+                }.send().let { _ ->
+                    establishConnection = true
+                }
+            } catch (e:Exception) {
+                establishConnection = false
+            }
 
             var newID:Long = 0
             if (establishConnection) {
@@ -122,7 +130,7 @@ class CreateConnectionViewModel @Inject constructor(
 
             Toast.makeText(
                 context,
-                if (state.connected) "Успешное соединение" else "Не удалось подключиться",
+                if (establishConnection) "Успешное соединение" else "Не удалось подключиться",
                 Toast.LENGTH_SHORT,
             ).show()
 

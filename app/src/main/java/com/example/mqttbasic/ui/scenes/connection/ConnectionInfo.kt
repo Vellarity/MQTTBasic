@@ -1,5 +1,6 @@
 package com.example.mqttbasic.ui.scenes.connection
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -37,6 +38,8 @@ fun ConnectionInfo(
     navController:NavHostController,
     viewModel:ConnectionInfoViewModel = hiltViewModel<ConnectionInfoViewModel>()
 ) {
+    BackHandler { navController.navigate("list_of_brokers") }
+
     val state = viewModel.uiState.collectAsStateWithLifecycle().value
 
     ConnectionInfoContent(state = state, brokerId = brokerId, onEvent = viewModel::invokeEvent)

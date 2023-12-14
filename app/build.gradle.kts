@@ -48,6 +48,7 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += listOf("META-INF/INDEX.LIST", "META-INF/io.netty.versions.properties")
         }
     }
 }
@@ -83,8 +84,7 @@ dependencies {
 
     implementation("io.coil-kt:coil-compose:2.5.0")
 
-    implementation ("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.4")
-    implementation ("org.eclipse.paho:org.eclipse.paho.android.service:1.1.1")
+    implementation("com.hivemq:hivemq-mqtt-client:1.3.0")
 }
 
 kapt {
