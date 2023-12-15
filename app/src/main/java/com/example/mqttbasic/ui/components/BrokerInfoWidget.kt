@@ -37,9 +37,11 @@ import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.bumptech.glide.Glide
 import com.example.mqttbasic.data.model.database.entities.Connection
 import com.example.mqttbasic.ui.theme.effects.shimmerEffect
 import com.example.mqttbasic.ui.theme.DarkGrey
+import java.util.UUID
 
 @Composable
 fun BrokerInfoWidget(modifier:Modifier = Modifier, broker: Connection, onImageSelected:(Uri) -> Unit) {
@@ -48,8 +50,20 @@ fun BrokerInfoWidget(modifier:Modifier = Modifier, broker: Connection, onImageSe
     val photoPicker =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.PickVisualMedia()) {
             if (it != null) {
-                imageUri.value = it
-                onImageSelected(it)
+
+                if (!broker.imageSource.isNullOrBlank()){
+                    try {
+                        context.filesDir.resolve(broker.imageSource).delete()
+                    } catch (_:Exception) {}
+                }
+
+                val input = context.contentResolver.openInputStream(it) ?: return@rememberLauncherForActivityResult
+                val output = context.filesDir.resolve("${broker.name}_${UUID.randomUUID()}_image.jpg")
+                input.copyTo(output.outputStream())
+                input.close()
+
+                imageUri.value = output.toUri()
+                onImageSelected(output.toUri())
             }
         }
 

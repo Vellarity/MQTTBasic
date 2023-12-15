@@ -27,11 +27,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.mqttbasic.data.model.database.entities.Connection
 import com.example.mqttbasic.ui.theme.LightGreen
 import com.example.mqttbasic.ui.theme.LightRed
+import java.io.File
 
 //data class Connection(
 //    val name:String,
@@ -43,7 +45,7 @@ import com.example.mqttbasic.ui.theme.LightRed
 //)
 
 @Composable
-fun ConnectionWidget(modifier:Modifier = Modifier ,broker: Connection) {
+fun ConnectionWidget(modifier:Modifier = Modifier, broker: Connection) {
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -73,7 +75,7 @@ fun ConnectionWidget(modifier:Modifier = Modifier ,broker: Connection) {
         else
             AsyncImage(
                 modifier = Modifier
-                    .size(90.dp)
+                    .size(70.dp)
                     .clip(RoundedCornerShape(15.dp)),
                 model = ImageRequest.Builder(LocalContext.current).data(broker.imageSource).crossfade(true).build(),
                 contentDescription = "123",
