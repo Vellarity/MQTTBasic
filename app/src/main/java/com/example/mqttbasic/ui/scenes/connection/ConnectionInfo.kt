@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -25,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.mqttbasic.ui.components.BrokerInfoWidget
 import com.example.mqttbasic.ui.components.BrokerInfoWidgetBlank
 import com.example.mqttbasic.ui.components.TopBar
@@ -38,19 +40,17 @@ fun ConnectionInfo(
     navController:NavHostController,
     viewModel:ConnectionInfoViewModel = hiltViewModel<ConnectionInfoViewModel>()
 ) {
-    BackHandler { navController.navigate("list_of_brokers") }
-
     val state = viewModel.uiState.collectAsStateWithLifecycle().value
 
-    ConnectionInfoContent(state = state, brokerId = brokerId, onEvent = viewModel::invokeEvent)
+    ConnectionInfoContent(state = state, brokerId = brokerId, onEvent = viewModel::invokeEvent, { navController.popBackStack() })
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ConnectionInfoContent(state:ConnectionInfoState, brokerId: Int, onEvent:(ConnectionInfoEvent) -> Unit) {
+fun ConnectionInfoContent(state:ConnectionInfoState, brokerId: Int, onEvent:(ConnectionInfoEvent) -> Unit, onBackClicked:() -> Unit) {
     Scaffold(
         containerColor = LightGrey,
-        topBar = { TopBar(name = "Подключение") },
+        topBar = { TopBar(name = "Подключение", onBackClicked) },
         contentWindowInsets = WindowInsets(10.dp, 10.dp, 10.dp, 20.dp),
     ) {innerPadding ->
         Column(
@@ -61,7 +61,7 @@ fun ConnectionInfoContent(state:ConnectionInfoState, brokerId: Int, onEvent:(Con
             when (state) {
                 is ConnectionInfoState.FetchingDbData -> { FetchingDbBLock( brokerId, onEvent ) }
                 is ConnectionInfoState.ConnectingToBroker -> { ConnectingToBrokerBlock( state, onEvent ) }
-                is ConnectionInfoState.MainState -> {}
+                is ConnectionInfoState.MainState -> { MainStateBlock(state = state, onEvent = onEvent) }
             }
         }
     }
@@ -97,6 +97,10 @@ private fun FetchingDbBLock(brokerId: Int, onEvent:(ConnectionInfoEvent) -> Unit
 
 @Composable
 private fun ConnectingToBrokerBlock(state:ConnectionInfoState.ConnectingToBroker, onEvent:(ConnectionInfoEvent) -> Unit) {
+    LaunchedEffect(Unit) {
+        onEvent(ConnectionInfoEvent.EnterConnectionScreen)
+    }
+
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ){
@@ -119,10 +123,36 @@ private fun ConnectingToBrokerBlock(state:ConnectionInfoState.ConnectingToBroker
     }
 }
 
+@Composable
+fun MainStateBlock(state:ConnectionInfoState.MainState, onEvent: (ConnectionInfoEvent) -> Unit) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ){
+        BrokerInfoWidget(broker = state.connectionInfo, onImageSelected = {uri -> onEvent(ConnectionInfoEvent.ImageSelected(uri))})
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(DarkGrey, RoundedCornerShape(20.dp))
+                .padding(10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            items(state.listOfMessages) {message ->
+                Box(modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp)
+                    .clip(RoundedCornerShape(15.dp))
+                )
+            }
+        }
+    }
+}
+
+
+
 @Preview
 @Composable
 private fun ConnectionInfoPreview() {
     val state = ConnectionInfoState.FetchingDbData
 
-    ConnectionInfoContent(state = state,1, onEvent = {})
+    ConnectionInfoContent(state = state,1, onEvent = {}, {})
 }

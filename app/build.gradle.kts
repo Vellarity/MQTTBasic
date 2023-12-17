@@ -83,7 +83,6 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     implementation("io.coil-kt:coil-compose:2.5.0")
-    implementation ("com.github.bumptech.glide:glide:4.16.0")
 
     implementation("com.hivemq:hivemq-mqtt-client:1.3.0")
 }

@@ -1,6 +1,7 @@
 package com.example.mqttbasic.ui.scenes.listofbrokers
 
 import android.app.Activity
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -57,14 +58,14 @@ class ListOfBrokersViewModel @Inject constructor(
 
     private fun getConnectionsList() {
         viewModelScope.launch {
-            val listOfConnections = db.connectionDao().getConnections()
-
-            if (listOfConnections.isEmpty()) {
-                _uiState.value = ListOfBrokersState.NoData
-            } else {
-               _uiState.value = ListOfBrokersState.Success(
-                   listOfConnections
-               )
+            db.connectionDao().getConnections().collect{listOfConnections ->
+                if (listOfConnections.isEmpty()) {
+                    _uiState.value = ListOfBrokersState.NoData
+                } else {
+                    _uiState.value = ListOfBrokersState.Success(
+                        listOfConnections
+                    )
+                }
             }
         }
     }

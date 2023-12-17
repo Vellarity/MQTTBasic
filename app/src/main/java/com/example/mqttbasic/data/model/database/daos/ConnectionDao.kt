@@ -6,11 +6,12 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.mqttbasic.data.model.database.entities.Connection
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ConnectionDao {
     @Query("SELECT * from connection")
-    suspend fun getConnections(): List<Connection>
+    fun getConnections(): Flow<List<Connection>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertConnections(vararg connections:Connection):LongArray

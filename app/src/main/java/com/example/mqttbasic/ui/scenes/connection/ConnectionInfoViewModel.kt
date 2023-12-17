@@ -6,10 +6,14 @@ import androidx.lifecycle.viewModelScope
 import com.example.mqttbasic.base.UiEvent
 import com.example.mqttbasic.data.model.database.AppDatabase
 import com.example.mqttbasic.data.model.database.entities.Connection
+import com.hivemq.client.mqtt.MqttClient
+import com.hivemq.client.mqtt.MqttGlobalPublishFilter
+import com.hivemq.client.mqtt.mqtt3.message.publish.Mqtt3Publish
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -37,7 +41,7 @@ class ConnectionInfoViewModel @Inject constructor(
 
     private fun reduceEvent(event: ConnectionInfoEvent, state:ConnectionInfoState.ConnectingToBroker) {
         when (event) {
-            is ConnectionInfoEvent.EnterConnectionScreen -> {}
+            is ConnectionInfoEvent.EnterConnectionScreen -> { connectToBroker(state) }
             is ConnectionInfoEvent.ImageSelected -> {updateConnectionImage(event.uri, state)}
             else -> {}
         }
@@ -63,4 +67,51 @@ class ConnectionInfoViewModel @Inject constructor(
         }
     }
 
+    private fun connectToBroker(state: ConnectionInfoState.ConnectingToBroker) {
+        val clientBuild = MqttClient.builder()
+            .identifier(UUID.randomUUID().toString())
+            .serverHost(state.connectionInfo.address)
+            .serverPort(state.connectionInfo.port)
+            .useMqttVersion3()
+            .buildBlocking()
+
+        var connected:Boolean = false
+
+        try {
+            clientBuild.connectWith().let {
+                if (!state.connectionInfo.userName.isNullOrBlank() and !state.connectionInfo.userPassword.isNullOrBlank())
+                    it.simpleAuth()
+                        .username(state.connectionInfo.userName!!)
+                        .password(state.connectionInfo.userPassword!!.toByteArray())
+                        .applySimpleAuth()
+                else
+                    it
+            }.send().let { _ -> connected = true }
+        } catch (e:Exception) { connected = false }
+
+        if (connected)
+            try {
+                clientBuild.subscribeWith()
+                    .topicFilter(state.connectionInfo.actualTopic ?: "#")
+                    .send()
+                clientBuild.toAsync().publishes(MqttGlobalPublishFilter.ALL) { publish ->
+                    onGetMessage(
+                        publish
+                    )
+                }
+            } catch (e:Exception) {
+                println(e)
+            }
+
+        _uiState.value = ConnectionInfoState.MainState(
+            connectionClass = clientBuild,
+            connectionInfo = state.connectionInfo,
+            listOfMessages = listOf(),
+            topicField = state.connectionInfo.actualTopic ?: "#"
+        )
+    }
+
+    private fun onGetMessage(callbackData:Mqtt3Publish) {
+        println(callbackData.payloadAsBytes.toString(Charsets.UTF_8))
+    }
 }

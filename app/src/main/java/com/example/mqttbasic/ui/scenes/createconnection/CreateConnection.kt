@@ -65,17 +65,14 @@ fun CreateConnectionContent(
     navController: NavHostController
 ) {
     val context = LocalContext.current
-   /* LaunchedEffect(state.connected) {
-        Toast.makeText(
-            context,
-            if (state.connected) "Соединение успешное" else "Соединение неудачное",
-            Toast.LENGTH_SHORT,
-        ).show()
-    }*/
 
     Scaffold(
         containerColor = LightGrey,
-        topBar = { TopBar(name = "Новое подключение") },
+        topBar = {
+            TopBar(
+                name = "Новое подключение",
+            ) { navController.popBackStack() }
+        },
         contentWindowInsets = WindowInsets(10.dp, 10.dp, 10.dp, 20.dp),
         floatingActionButtonPosition = FabPosition.End
     ) { innerPadding ->

@@ -28,11 +28,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.example.mqttbasic.ui.theme.DarkGrey
 import com.example.mqttbasic.R
 
 @Composable
-fun TopBar(name:String) {
+fun TopBar(name:String, onBackClick:() -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -91,5 +92,5 @@ fun TopBar(name:String) {
 @Preview
 @Composable
 private fun TopBarPreview() {
-    TopBar(name = "Название раздела")
+    TopBar(name = "Название раздела", {})
 }

@@ -37,7 +37,6 @@ import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.bumptech.glide.Glide
 import com.example.mqttbasic.data.model.database.entities.Connection
 import com.example.mqttbasic.ui.theme.effects.shimmerEffect
 import com.example.mqttbasic.ui.theme.DarkGrey

@@ -1,6 +1,7 @@
 package com.example.mqttbasic.ui.scenes.listofbrokers
 
 import android.annotation.SuppressLint
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,11 +39,11 @@ import com.example.mqttbasic.ui.components.TopBar
 import com.example.mqttbasic.ui.theme.DarkGrey
 import com.example.mqttbasic.ui.theme.LightGrey
 
-@SuppressLint("StateFlowValueCalledInComposition")
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListOfBrokers(navController:NavHostController, viewModel: ListOfBrokersViewModel = hiltViewModel<ListOfBrokersViewModel>()) {
     val state = viewModel.uiState.collectAsStateWithLifecycle().value
+
+    BackHandler { navController.popBackStack("main", inclusive = false) }
 
     ListOfBrokersContent(state = state, viewModel::invokeEvent, navController)
 }
@@ -52,7 +53,9 @@ fun ListOfBrokers(navController:NavHostController, viewModel: ListOfBrokersViewM
 private fun ListOfBrokersContent(state:ListOfBrokersState, onEvent:(ListOfBrokersEvent) -> Unit, navController: NavHostController) {
     Scaffold(
         containerColor = LightGrey,
-        topBar = {TopBar(name = "Подключения")},
+        topBar = {
+            TopBar(name = "Подключения", { navController.popBackStack() })
+        },
         contentWindowInsets = WindowInsets(10.dp, 10.dp, 10.dp, 20.dp),
         floatingActionButton = {FloatingButton()},
         floatingActionButtonPosition = FabPosition.End
