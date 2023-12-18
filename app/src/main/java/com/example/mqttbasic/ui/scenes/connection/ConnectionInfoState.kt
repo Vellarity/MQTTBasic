@@ -12,7 +12,7 @@ sealed class ConnectionInfoState:UiState {
     ): ConnectionInfoState()
     data class MainState(
         val connectionInfo: Connection,
-        val connectionClass: Mqtt3BlockingClient,
+        val connectionClass: Mqtt3BlockingClient?,
         val listOfMessages: List<Message>,
         val topicField: String,
     ): ConnectionInfoState()

@@ -8,4 +8,5 @@ sealed class ConnectionInfoEvent:UiEvent {
     data object EnterConnectionScreen: ConnectionInfoEvent()
     data class ImageSelected(val uri:Uri): ConnectionInfoEvent()
     data class TopicFieldChange(val value:String): ConnectionInfoEvent()
+    data object SubscribeButtonClicked: ConnectionInfoEvent()
 }

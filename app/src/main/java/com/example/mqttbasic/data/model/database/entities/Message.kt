@@ -18,7 +18,8 @@ data class Message(
     val id:Long? = null,
     val payload:String = "",
     val topic:String,
-    val timestamp:Long,
+    val timestamp:String,
+    val qos:Int,
     @ColumnInfo(name = "connection_id")
     val connectionId:Int,
 )
