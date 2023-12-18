@@ -54,10 +54,10 @@ private fun ListOfBrokersContent(state:ListOfBrokersState, onEvent:(ListOfBroker
     Scaffold(
         containerColor = LightGrey,
         topBar = {
-            TopBar(name = "Подключения", { navController.popBackStack() })
+            TopBar(name = "Подключения") { navController.popBackStack("main", inclusive = false) }
         },
-        contentWindowInsets = WindowInsets(10.dp, 10.dp, 10.dp, 20.dp),
-        floatingActionButton = {FloatingButton()},
+        contentWindowInsets = WindowInsets(10.dp, 10.dp, 10.dp, 10.dp),
+        floatingActionButton = {FloatingButton(onClick = { navController.navigate("create_connection") })},
         floatingActionButtonPosition = FabPosition.End
     ) {
             innerPadding ->

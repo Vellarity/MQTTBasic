@@ -1,6 +1,8 @@
 package com.example.mqttbasic.ui.scenes.connection
 
+import android.content.Context
 import android.net.Uri
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mqttbasic.base.UiEvent
@@ -10,6 +12,7 @@ import com.example.mqttbasic.data.model.database.entities.Message
 import com.hivemq.client.mqtt.MqttClient
 import com.hivemq.client.mqtt.MqttGlobalPublishFilter
 import com.hivemq.client.mqtt.mqtt3.message.publish.Mqtt3Publish
+import com.hivemq.client.mqtt.mqtt3.message.unsubscribe.Mqtt3Unsubscribe
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -55,6 +58,7 @@ class ConnectionInfoViewModel @Inject constructor(
         when (event) {
             is ConnectionInfoEvent.ImageSelected -> {updateConnectionImage(event.uri, state)}
             is ConnectionInfoEvent.TopicFieldChange -> {updateTopicFieldValue(event.value, state)}
+            is ConnectionInfoEvent.SubscribeButtonClicked -> { updateSubscription(event.context, state) }
             else -> {}
         }
     }
@@ -78,7 +82,6 @@ class ConnectionInfoViewModel @Inject constructor(
             }
         }
     }
-
     private fun updateConnectionImage(uri: Uri, state:ConnectionInfoState.MainState) {
         viewModelScope.launch {
             val id = db.connectionDao()
@@ -163,5 +166,32 @@ class ConnectionInfoViewModel @Inject constructor(
         _uiState.value = state.copy(
             topicField = value
         )
+    }
+
+    private fun updateSubscription(context:Context, state: ConnectionInfoState.MainState) {
+        viewModelScope.launch {
+            try {
+                state.connectionClass
+                    ?.subscribeWith()
+                    ?.topicFilter(state.topicField)
+                    ?.send()
+                state.connectionClass?.unsubscribe(Mqtt3Unsubscribe.builder().topicFilter(state.connectionInfo.actualTopic!!).build())
+                val newConnection = state.connectionInfo.copy(actualTopic = state.topicField)
+                db.connectionDao().insertConnections(newConnection)
+                _uiState.value = state.copy(connectionInfo = newConnection)
+                Toast.makeText(
+                    context,
+                    "Топик обновлён",
+                    Toast.LENGTH_SHORT,
+                ).show()
+            } catch (e:Exception) {
+                Toast.makeText(
+                    context,
+                    "Не удалось подключиться к новому топику",
+                    Toast.LENGTH_SHORT,
+                ).show()
+                return@launch
+            }
+        }
     }
 }

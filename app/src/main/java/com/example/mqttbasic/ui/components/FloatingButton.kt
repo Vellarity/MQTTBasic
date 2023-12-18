@@ -11,14 +11,16 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.mqttbasic.R
+import com.example.mqttbasic.ui.theme.LightPurple
 
 @Composable
-fun FloatingButton() {
+fun FloatingButton(onClick:() -> Unit = {}) {
     FloatingActionButton(
         modifier = Modifier
             .padding(end = 8.dp)
             .size(60.dp),
-        onClick = { /*TODO*/ }
+        onClick = onClick,
+        containerColor = LightPurple
     ) {
         Image(
             modifier = Modifier

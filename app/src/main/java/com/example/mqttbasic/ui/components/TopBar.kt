@@ -60,7 +60,7 @@ fun TopBar(name:String, onBackClick:() -> Unit) {
                     ),
                     shape = RoundedCornerShape(15.dp),
                     contentPadding = PaddingValues(5.dp),
-                    onClick = {}
+                    onClick = onBackClick
                 ) {
                     Image(
                         modifier = Modifier

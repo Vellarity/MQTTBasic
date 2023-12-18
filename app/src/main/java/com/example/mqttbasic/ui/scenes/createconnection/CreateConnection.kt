@@ -73,7 +73,7 @@ fun CreateConnectionContent(
                 name = "Новое подключение",
             ) { navController.popBackStack() }
         },
-        contentWindowInsets = WindowInsets(10.dp, 10.dp, 10.dp, 20.dp),
+        contentWindowInsets = WindowInsets(10.dp, 10.dp, 10.dp, 10.dp),
         floatingActionButtonPosition = FabPosition.End
     ) { innerPadding ->
         Column(

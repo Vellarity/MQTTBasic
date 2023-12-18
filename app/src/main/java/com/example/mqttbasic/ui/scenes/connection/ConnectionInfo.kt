@@ -2,10 +2,12 @@ package com.example.mqttbasic.ui.scenes.connection
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -20,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,12 +33,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.mqttbasic.R
 import com.example.mqttbasic.data.model.database.entities.Connection
 import com.example.mqttbasic.data.model.database.entities.Message
 import com.example.mqttbasic.ui.components.BrokerInfoWidget
@@ -44,6 +51,7 @@ import com.example.mqttbasic.ui.components.MessageWidget
 import com.example.mqttbasic.ui.components.MqttBasicTextField
 import com.example.mqttbasic.ui.components.TopBar
 import com.example.mqttbasic.ui.theme.DarkGrey
+import com.example.mqttbasic.ui.theme.DarkPurple
 import com.example.mqttbasic.ui.theme.LightGrey
 import com.example.mqttbasic.ui.theme.LightPurple
 import com.example.mqttbasic.ui.theme.effects.shimmerEffect
@@ -66,7 +74,7 @@ fun ConnectionInfoContent(state:ConnectionInfoState, brokerId: Int, onEvent:(Con
     Scaffold(
         containerColor = LightGrey,
         topBar = { TopBar(name = "Подключение", onBackClicked) },
-        contentWindowInsets = WindowInsets(10.dp, 10.dp, 10.dp, 20.dp),
+        contentWindowInsets = WindowInsets(10.dp, 10.dp, 10.dp, 10.dp),
     ) {innerPadding ->
         Column(
             modifier= Modifier
@@ -140,6 +148,7 @@ private fun ConnectingToBrokerBlock(state:ConnectionInfoState.ConnectingToBroker
 
 @Composable
 fun MainStateBlock(state:ConnectionInfoState.MainState, onEvent: (ConnectionInfoEvent) -> Unit) {
+    val context = LocalContext.current
 
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -186,9 +195,16 @@ fun MainStateBlock(state:ConnectionInfoState.MainState, onEvent: (ConnectionInfo
                     containerColor = LightPurple
                 ),
                 shape = RoundedCornerShape(15.dp),
-                onClick = { onEvent(ConnectionInfoEvent.SubscribeButtonClicked) }
+                onClick = { onEvent(ConnectionInfoEvent.SubscribeButtonClicked(context)) },
+                contentPadding = PaddingValues()
             ){
-
+                Icon(
+                    modifier = Modifier
+                        .size(40.dp),
+                    imageVector = ImageVector.vectorResource(id = R.drawable.link),
+                    contentDescription = null,
+                    tint = DarkPurple
+                )
             }
         }
     }
