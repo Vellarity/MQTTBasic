@@ -4,6 +4,18 @@ import com.example.mqttbasic.base.UiState
 
 sealed class CreateConnectionState: UiState {
     data class MainState(
+        val name:String = "",
+        val address:String = "",
+        val port:Int = 1883,
+        val authChecked:Boolean = false,
+        val userName:String? = "",
+        val userPassword:String? = "",
+        val connected:Boolean = false
+    ):CreateConnectionState()
+}
+
+/*
+    data class MainState(
         val name:String = "test",
         val address:String = "m5.wqtt.ru",
         val port:Int = 9772,
@@ -12,4 +24,4 @@ sealed class CreateConnectionState: UiState {
         val userPassword:String? = "3uzQzpcZ",
         val connected:Boolean = false
     ):CreateConnectionState()
-}
+*/

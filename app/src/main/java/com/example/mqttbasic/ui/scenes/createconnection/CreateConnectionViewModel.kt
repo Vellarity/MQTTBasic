@@ -12,6 +12,7 @@ import com.example.mqttbasic.data.model.database.AppDatabase
 import com.example.mqttbasic.data.model.database.entities.Connection
 import com.example.mqttbasic.ui.scenes.connection.ConnectionInfoEffect
 import com.hivemq.client.mqtt.MqttClient
+import com.hivemq.client.mqtt.mqtt3.Mqtt3BlockingClient
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -91,15 +92,15 @@ class CreateConnectionViewModel @Inject constructor(
 
     private fun tryToConnectAndWriteData(state:CreateConnectionState.MainState, navController:NavHostController, context:Context) {
         viewModelScope.launch {
-            var establishConnection = false
-            val clientBuild = MqttClient.builder()
-                .identifier(UUID.randomUUID().toString())
-                .serverHost(state.address)
-                .serverPort(state.port)
-                .useMqttVersion3()
-                .buildBlocking()
 
+            var establishConnection = false
             try {
+                val clientBuild = MqttClient.builder()
+                    .identifier(UUID.randomUUID().toString())
+                    .serverHost(state.address)
+                    .serverPort(state.port)
+                    .useMqttVersion3()
+                    .buildBlocking()
                 clientBuild.connectWith().let {
                     if (state.authChecked and !state.userName.isNullOrBlank() and !state.userPassword.isNullOrBlank())
                         it.simpleAuth()
