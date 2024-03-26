@@ -19,9 +19,22 @@ import com.example.mqttbasic.ui.scenes.main.MainPage
 @Composable
 fun MqttBasicNavHost(navController: NavHostController) {
     NavHost(navController = navController, startDestination = "main"){
-        composable("main") { MainPage(navController) }
-        composable("list_of_brokers") { ListOfBrokers(navController, hiltViewModel<ListOfBrokersViewModel>()) }
-        composable("create_connection"){ CreateConnection(navController, hiltViewModel<CreateConnectionViewModel>()) }
-        composable("connection_info/{brokerId}", arguments = listOf(navArgument("brokerId") { type = NavType.IntType})) {backStackEntry -> ConnectionInfo(backStackEntry.arguments!!.getInt("brokerId"), navController, hiltViewModel<ConnectionInfoViewModel>())}
+        composable("main") {
+            MainPage(navController)
+        }
+        composable("list_of_brokers") {
+            ListOfBrokers(navController, hiltViewModel<ListOfBrokersViewModel>())
+        }
+        composable("create_connection"){
+            CreateConnection(navController, hiltViewModel<CreateConnectionViewModel>())
+        }
+        composable(
+            "connection_info/{brokerId}",
+            arguments = listOf(navArgument("brokerId") { type = NavType.IntType})
+        ) {
+            backStackEntry -> ConnectionInfo(backStackEntry.arguments!!.getInt("brokerId"),
+            navController,
+            hiltViewModel<ConnectionInfoViewModel>())
+        }
     }
 }

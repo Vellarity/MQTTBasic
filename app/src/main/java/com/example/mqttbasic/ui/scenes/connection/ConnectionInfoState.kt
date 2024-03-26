@@ -15,5 +15,6 @@ sealed class ConnectionInfoState:UiState {
         val connectionClass: Mqtt3BlockingClient?,
         val listOfMessages: List<Message>,
         val topicField: String,
+        //val modalSheetVisibility:Boolean,
     ): ConnectionInfoState()
 }

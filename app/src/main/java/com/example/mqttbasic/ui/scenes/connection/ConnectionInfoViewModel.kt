@@ -59,6 +59,7 @@ class ConnectionInfoViewModel @Inject constructor(
             is ConnectionInfoEvent.ImageSelected -> {updateConnectionImage(event.uri, state)}
             is ConnectionInfoEvent.TopicFieldChange -> {updateTopicFieldValue(event.value, state)}
             is ConnectionInfoEvent.SubscribeButtonClicked -> { updateSubscription(event.context, state) }
+            //is ConnectionInfoEvent.SwitchModalSheetVisibility -> { switchModalSheetVisibility(event.isVisible, state) }
             else -> {}
         }
     }
@@ -135,7 +136,8 @@ class ConnectionInfoViewModel @Inject constructor(
                 connectionClass = clientBuild,
                 connectionInfo = state.connectionInfo,
                 listOfMessages = db.messageDao().getMessagesByBrokerId(state.connectionInfo.id!!),
-                topicField = state.connectionInfo.actualTopic ?: "#"
+                topicField = state.connectionInfo.actualTopic ?: "#",
+                //modalSheetVisibility = false
             )
         }
     }
@@ -194,4 +196,10 @@ class ConnectionInfoViewModel @Inject constructor(
             }
         }
     }
+
+//    private fun switchModalSheetVisibility(isVisible:Boolean, state: ConnectionInfoState.MainState) {
+//        _uiState.value = state.copy(
+//            modalSheetVisibility = isVisible
+//        )
+//    }
 }
