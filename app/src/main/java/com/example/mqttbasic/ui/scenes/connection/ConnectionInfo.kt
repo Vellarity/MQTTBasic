@@ -44,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
@@ -60,6 +61,7 @@ import com.example.mqttbasic.ui.components.BrokerInfoWidget
 import com.example.mqttbasic.ui.components.BrokerInfoWidgetBlank
 import com.example.mqttbasic.ui.components.MessageWidget
 import com.example.mqttbasic.ui.components.MqttBasicTextField
+import com.example.mqttbasic.ui.components.MqttButton
 import com.example.mqttbasic.ui.components.TopBar
 import com.example.mqttbasic.ui.theme.DarkGrey
 import com.example.mqttbasic.ui.theme.DarkPurple
@@ -167,11 +169,73 @@ fun MainStateBlock(state:ConnectionInfoState.MainState, onEvent: (ConnectionInfo
     var showBottomSheet by remember { mutableStateOf(false) }
 
     if (showBottomSheet) {
+        var topicValue by remember { mutableStateOf(state.topicField) }
+        var messageValue by remember { mutableStateOf("") }
+
         ModalBottomSheet(
+            //windowInsets = WindowInsets(5.dp, 0.dp, 5.dp, 0.dp),
+            containerColor = LightGrey,
+            dragHandle = {BottomSheetDefaults.DragHandle(color = Color.White)},
             onDismissRequest = { showBottomSheet = false },
             sheetState = sheetState
         ) {
-            MqttBasicTextField(value = "", onValueChange = {})
+            Surface(
+                color = LightGrey
+            ) {
+                Column(
+                    modifier = Modifier.padding(bottom = 10.dp, start = 10.dp, end = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    MqttBasicTextField(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(60.dp)
+                            .padding(top = 0.dp)
+                            .clip(RoundedCornerShape(15.dp)),
+                        value = topicValue,
+                        labelText = "Топик",
+                        onValueChange = { topicValue = it }
+                    )
+                    MqttBasicTextField(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(160.dp)
+                            .padding(top = 0.dp)
+                            .clip(RoundedCornerShape(15.dp)),
+                        singleLine = false,
+                        value = messageValue,
+                        labelText = "Сообщение",
+                        onValueChange = {messageValue = it}
+                    )
+                    Button(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = LightPurple
+                        ),
+                        shape = RoundedCornerShape(15.dp),
+                        onClick = {
+                            onEvent(
+                                ConnectionInfoEvent.SendMessageToBroker(
+                                    topicValue,
+                                    messageValue,
+                                    context
+                                )
+                            )
+                        }
+                    ) {
+                        Icon(
+                            modifier = Modifier
+                                .size(30.dp),
+                            imageVector = ImageVector.vectorResource(id = R.drawable.send),
+                            contentDescription = null,
+                            tint = DarkPurple
+                        )
+                    }
+                    
+                }
+            }
+
+
         }
     }
     
@@ -198,25 +262,27 @@ fun MainStateBlock(state:ConnectionInfoState.MainState, onEvent: (ConnectionInfo
                     MessageWidget(message = message)
                 }
             }
-            Button(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonColors(
-                    containerColor = LightPurple,
-                    contentColor = DarkPurple,
-                    disabledContainerColor = LightGrey,
-                    disabledContentColor = DarkGrey
-                ),
-                onClick = { showBottomSheet = true }
-            ) {
-                Icon(
+            if (state.connectionInfo.establishConnection) {
+                Button(
                     modifier = Modifier
-                        .size(30.dp),
-                    imageVector = ImageVector.vectorResource(id = R.drawable.plus),
-                    contentDescription = null,
-                    tint = DarkPurple
-                )
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonColors(
+                        containerColor = LightPurple,
+                        contentColor = DarkPurple,
+                        disabledContainerColor = LightGrey,
+                        disabledContentColor = DarkGrey
+                    ),
+                    onClick = { showBottomSheet = true }
+                ) {
+                    Icon(
+                        modifier = Modifier
+                            .size(30.dp),
+                        imageVector = ImageVector.vectorResource(id = R.drawable.plus),
+                        contentDescription = null,
+                        tint = DarkPurple
+                    )
+                }
             }
         }
         Row(
@@ -235,29 +301,32 @@ fun MainStateBlock(state:ConnectionInfoState.MainState, onEvent: (ConnectionInfo
                     .clip(RoundedCornerShape(15.dp)),
                 value = state.topicField,
                 labelText = "Топик",
+                enabled = state.connectionInfo.establishConnection,
                 onValueChange = {
                     value ->
                     onEvent(ConnectionInfoEvent.TopicFieldChange(value))
                 }
             )
-            Button(
-                modifier = Modifier
-                    .padding(top = 5.dp)
-                    .size(50.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = LightPurple
-                ),
-                shape = RoundedCornerShape(15.dp),
-                onClick = { onEvent(ConnectionInfoEvent.SubscribeButtonClicked(context)) },
-                contentPadding = PaddingValues()
-            ){
-                Icon(
+            if (state.connectionInfo.establishConnection) {
+                Button(
                     modifier = Modifier
-                        .size(40.dp),
-                    imageVector = ImageVector.vectorResource(id = R.drawable.link),
-                    contentDescription = null,
-                    tint = DarkPurple
-                )
+                        .padding(top = 5.dp)
+                        .size(50.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = LightPurple
+                    ),
+                    shape = RoundedCornerShape(15.dp),
+                    onClick = { onEvent(ConnectionInfoEvent.SubscribeButtonClicked(context)) },
+                    contentPadding = PaddingValues()
+                ) {
+                    Icon(
+                        modifier = Modifier
+                            .size(40.dp),
+                        imageVector = ImageVector.vectorResource(id = R.drawable.link),
+                        contentDescription = null,
+                        tint = DarkPurple
+                    )
+                }
             }
         }
     }
@@ -276,7 +345,7 @@ private fun ConnectionInfoPreview() {
             userName = "userName",
             userPassword = "userPassword",
             actualTopic = "#/abs/topic",
-            establishConnection = true
+            establishConnection = false
         ),
         listOfMessages = listOf(),
         topicField = "/asd/conf",

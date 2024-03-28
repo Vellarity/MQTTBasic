@@ -11,6 +11,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
@@ -40,11 +41,11 @@ fun MqttBasicTextField(
     modifier: Modifier = Modifier,
     value:String,
     enabled:Boolean = true,
+    singleLine:Boolean = true,
     labelText:String? = null,
     onValueChange:(String) -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    val singleLine = true
 
     BasicTextField(
         value = value,
@@ -67,8 +68,16 @@ fun MqttBasicTextField(
         enabled = enabled,
         singleLine = singleLine
     ) {
-        TextFieldDefaults.OutlinedTextFieldDecorationBox(
+        OutlinedTextFieldDefaults.DecorationBox(
             value = value,
+            innerTextField = it,
+            enabled = enabled,
+            // same interaction source as the one passed to BasicTextField to read focus state
+            // for text field styling
+            singleLine = singleLine,
+            visualTransformation = VisualTransformation.None,
+            interactionSource = interactionSource,
+            // keep vertical paddings but change the horizontal
             label = {
                 if (!labelText.isNullOrBlank()) {
                     Text(
@@ -78,19 +87,19 @@ fun MqttBasicTextField(
                     )
                 }
             },
-            visualTransformation = VisualTransformation.None,
-            innerTextField = it,
-            singleLine = singleLine,
-            enabled = enabled,
-            // same interaction source as the one passed to BasicTextField to read focus state
-            // for text field styling
-            interactionSource = interactionSource,
-            // keep vertical paddings but change the horizontal
-            contentPadding =
-            if (!labelText.isNullOrBlank())
-                TextFieldDefaults.textFieldWithLabelPadding(start = 20.dp, end = 10.dp, top = 5.dp)
+            colors = OutlinedTextFieldDefaults.colors(),
+            contentPadding = if (!labelText.isNullOrBlank())
+                TextFieldDefaults.contentPaddingWithLabel(
+                    start = 20.dp,
+                    top = 5.dp,
+                    end = 10.dp,
+                )
             else
-                TextFieldDefaults.textFieldWithoutLabelPadding(start = 20.dp, end = 10.dp, top = 5.dp),
+                TextFieldDefaults.contentPaddingWithoutLabel(
+                    start = 20.dp,
+                    top = 5.dp,
+                    end = 10.dp,
+                ),
             container = {
                 Box(
                     modifier = Modifier
@@ -101,7 +110,7 @@ fun MqttBasicTextField(
                             RoundedCornerShape(15.dp)
                         )
                 )
-            }
+            },
         )
     }
 

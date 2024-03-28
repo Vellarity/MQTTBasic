@@ -59,6 +59,7 @@ class ConnectionInfoViewModel @Inject constructor(
             is ConnectionInfoEvent.ImageSelected -> {updateConnectionImage(event.uri, state)}
             is ConnectionInfoEvent.TopicFieldChange -> {updateTopicFieldValue(event.value, state)}
             is ConnectionInfoEvent.SubscribeButtonClicked -> { updateSubscription(event.context, state) }
+            is ConnectionInfoEvent.SendMessageToBroker -> { sendMessage(event.topicValue, event.messageValue, event.context, state) }
             //is ConnectionInfoEvent.SwitchModalSheetVisibility -> { switchModalSheetVisibility(event.isVisible, state) }
             else -> {}
         }
@@ -106,6 +107,8 @@ class ConnectionInfoViewModel @Inject constructor(
 
             var connected:Boolean = false
 
+            var newConnection:Connection? = null
+
             try {
                 clientBuild.connectWith().let {
                     if (!state.connectionInfo.userName.isNullOrBlank() and !state.connectionInfo.userPassword.isNullOrBlank())
@@ -116,7 +119,12 @@ class ConnectionInfoViewModel @Inject constructor(
                     else
                         it
                 }.send().let { _ -> connected = true }
-            } catch (e:Exception) { connected = false }
+            } catch (e:Exception) {
+                connected = false
+                newConnection = state.connectionInfo.copy(establishConnection = false)
+                db.connectionDao().insertConnections(newConnection)
+                //_uiState.value = state.copy(connectionInfo = newConnection)
+            }
 
             if (connected)
                 try {
@@ -133,8 +141,8 @@ class ConnectionInfoViewModel @Inject constructor(
                 }
 
             _uiState.value = ConnectionInfoState.MainState(
-                connectionClass = clientBuild,
-                connectionInfo = state.connectionInfo,
+                connectionClass =  if (connected) clientBuild else null,
+                connectionInfo =  newConnection ?: state.connectionInfo,
                 listOfMessages = db.messageDao().getMessagesByBrokerId(state.connectionInfo.id!!),
                 topicField = state.connectionInfo.actualTopic ?: "#",
                 //modalSheetVisibility = false
@@ -147,7 +155,6 @@ class ConnectionInfoViewModel @Inject constructor(
             val state = (_uiState.value as ConnectionInfoState.MainState)
 
             val message = Message(
-                id = (_uiState.value as ConnectionInfoState.MainState).listOfMessages.size.toLong(),
                 payload = callbackData.payloadAsBytes.toString(Charsets.UTF_8),
                 topic = callbackData.topic.toString(),
                 qos = callbackData.qos.code,
@@ -155,10 +162,10 @@ class ConnectionInfoViewModel @Inject constructor(
                 timestamp = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
             )
 
-            db.messageDao().insertMessage(message)
+            val newID = db.messageDao().insertMessage(message)
 
             val list = state.listOfMessages.toMutableList()
-            list.add(0,message)
+            list.add(0, message.copy(id = newID))
 
             _uiState.value = state.copy(listOfMessages = list)
         }
@@ -197,9 +204,22 @@ class ConnectionInfoViewModel @Inject constructor(
         }
     }
 
-//    private fun switchModalSheetVisibility(isVisible:Boolean, state: ConnectionInfoState.MainState) {
-//        _uiState.value = state.copy(
-//            modalSheetVisibility = isVisible
-//        )
-//    }
+    private fun sendMessage(topic:String, message:String, context: Context, state:ConnectionInfoState.MainState) {
+        viewModelScope.launch {
+            val client = state.connectionClass!!
+
+            try {
+                client.publishWith().topic(topic).payload(message.toByteArray()).send()
+            } catch (e:Exception) {
+                Toast.makeText(
+                    context,
+                    "Не удалось отправить сообщение",
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
+
+            return@launch
+        }
+    }
+
 }

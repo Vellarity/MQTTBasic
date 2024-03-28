@@ -113,6 +113,7 @@ class CreateConnectionViewModel @Inject constructor(
                     establishConnection = true
                 }
             } catch (e:Exception) {
+                println(e)
                 establishConnection = false
             }
 

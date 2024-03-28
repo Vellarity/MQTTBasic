@@ -15,7 +15,7 @@ import androidx.room.PrimaryKey
 )
 data class Message(
     @PrimaryKey(autoGenerate = true)
-    val id:Long? = null,
+    val id:Long = 0,
     val payload:String = "",
     val topic:String,
     val timestamp:String,
