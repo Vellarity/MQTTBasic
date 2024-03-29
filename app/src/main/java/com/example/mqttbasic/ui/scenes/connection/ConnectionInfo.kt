@@ -42,14 +42,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -69,6 +73,7 @@ import com.example.mqttbasic.ui.theme.LightGrey
 import com.example.mqttbasic.ui.theme.LightPurple
 import com.example.mqttbasic.ui.theme.effects.shimmerEffect
 import com.hivemq.client.mqtt.mqtt3.Mqtt3Client
+import kotlinx.coroutines.launch
 
 @Composable
 fun ConnectionInfo(
@@ -220,7 +225,12 @@ fun MainStateBlock(state:ConnectionInfoState.MainState, onEvent: (ConnectionInfo
                                     messageValue,
                                     context
                                 )
-                            )
+                            );
+                            scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                if (!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                }
+                            }
                         }
                     ) {
                         Icon(
@@ -251,17 +261,34 @@ fun MainStateBlock(state:ConnectionInfoState.MainState, onEvent: (ConnectionInfo
                 .padding(10.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .background(DarkGrey, RoundedCornerShape(20.dp)),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                items(state.listOfMessages, {message -> message.id!!}) {message ->
-                    MessageWidget(message = message)
+            if (state.listOfMessages.isNotEmpty())
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .background(DarkGrey, RoundedCornerShape(20.dp)),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(state.listOfMessages, {message -> message.id!!}) {message ->
+                        MessageWidget(message = message)
+                    }
                 }
-            }
+            else
+                Column (
+                    modifier = Modifier
+                        .weight(1f),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        text = "Список сообщений пуст"
+                    )
+                }
             if (state.connectionInfo.establishConnection) {
                 Button(
                     modifier = Modifier
