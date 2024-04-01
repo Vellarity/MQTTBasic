@@ -12,11 +12,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,12 +36,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.mqttbasic.data.model.database.entities.Connection
 import com.example.mqttbasic.ui.theme.effects.shimmerEffect
 import com.example.mqttbasic.ui.theme.DarkGrey
+import com.example.mqttbasic.ui.theme.LightGreen
+import com.example.mqttbasic.ui.theme.LightRed
 import java.util.UUID
 
 @Composable
@@ -66,121 +71,133 @@ fun BrokerInfoWidget(modifier:Modifier = Modifier, broker: Connection, onImageSe
             }
         }
 
-    Row(
+    Box(
         modifier = modifier
             .fillMaxWidth()
             .height(110.dp)
-            .background(DarkGrey, RoundedCornerShape(20.dp))
-            .padding(10.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+            .background(DarkGrey, RoundedCornerShape(20.dp)),
     ) {
-        if (imageUri.value != null)
-            AsyncImage(
-                modifier = Modifier
-                    .size(90.dp)
-                    .clip(RoundedCornerShape(15.dp))
-                    .clickable {
-                        photoPicker.launch(
-                            PickVisualMediaRequest(
-                                ActivityResultContracts.PickVisualMedia.ImageOnly
-                            )
-                        )
-                    },
-                model = ImageRequest.Builder(context).data(broker.imageSource).crossfade(true).build(),
-                contentDescription = "123",
-                contentScale = ContentScale.Crop
-            )
-        else
-            Box(
-                modifier = Modifier
-                    .size(90.dp)
-                    .background(Color.White, RoundedCornerShape(15.dp))
-                    .clickable {
-                        photoPicker.launch(
-                            PickVisualMediaRequest(
-                                ActivityResultContracts.PickVisualMedia.ImageOnly
-                            )
-                        )
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Нет изображения",
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center
-                )
-            }
-
-        Column(
+        Row(
             modifier = Modifier
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row {
-                Text(
-                    text = "Название: ",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.White,
+                .padding(top = 10.dp, end = 10.dp, bottom = 10.dp, start = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ){
+            if (imageUri.value != null)
+                AsyncImage(
+                    modifier = Modifier
+                        .size(90.dp)
+                        .clip(RoundedCornerShape(15.dp))
+                        .clickable {
+                            photoPicker.launch(
+                                PickVisualMediaRequest(
+                                    ActivityResultContracts.PickVisualMedia.ImageOnly
+                                )
+                            )
+                        },
+                    model = ImageRequest.Builder(context).data(broker.imageSource).crossfade(true).build(),
+                    contentDescription = "123",
+                    contentScale = ContentScale.Crop
                 )
-                Text(
-                    text = broker.name,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.White,
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 1
-                )
-            }
-            Row {
-                Text(
-                    text = "Адрес: ",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.White,
-                )
-                Text(
-                    text = broker.address,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.White,
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 1
-                )
-            }
-            Row {
-                Text(
-                    text = "Порт: ",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.White,
-                )
-                Text(
-                    text = broker.port.toString(),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.White,
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 1
-                )
-            }
-            Row {
-                Text(
-                    text = "Пользователь: ",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.White,
-                )
-                Text(
-                    text = broker.userName ?: "Не задан",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.White,
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 1
-                )
+            else
+                Box(
+                    modifier = Modifier
+                        .size(90.dp)
+                        .background(Color.White, RoundedCornerShape(15.dp))
+                        .clickable {
+                            photoPicker.launch(
+                                PickVisualMediaRequest(
+                                    ActivityResultContracts.PickVisualMedia.ImageOnly
+                                )
+                            )
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Нет изображения",
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row {
+                    Text(
+                        text = "Название: ",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White,
+                    )
+                    Text(
+                        text = broker.name,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.White,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1
+                    )
+                }
+                Row {
+                    Text(
+                        text = "Адрес: ",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White,
+                    )
+                    Text(
+                        text = broker.address,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.White,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1
+                    )
+                }
+                Row {
+                    Text(
+                        text = "Порт: ",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White,
+                    )
+                    Text(
+                        text = broker.port.toString(),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.White,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1
+                    )
+                }
+                Row {
+                    Text(
+                        text = "Пользователь: ",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White,
+                    )
+                    Text(
+                        text = broker.userName ?: "Не задан",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.White,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1
+                    )
+                }
             }
         }
+        Box(
+            modifier= Modifier
+                .padding(5.dp)
+                .size(20.dp)
+                .background( if (broker.establishConnection) LightGreen else LightRed, RoundedCornerShape(100))
+                .zIndex(100f)
+                .align(Alignment.BottomEnd)
+        )
     }
 }
 
@@ -242,7 +259,7 @@ fun BrokerInfoWidgetBlank() {
 @Preview
 @Composable
 private fun BrokerInfoWidgetPreview(){
-/*    BrokerInfoWidget(
+    BrokerInfoWidget(
         broker = Connection(
             name = "Подключение капец длинное",
             address = "lol.com.res",
@@ -253,8 +270,8 @@ private fun BrokerInfoWidgetPreview(){
             establishConnection = true
         ),
         onImageSelected = {}
-    )*/
+    )
 
-    BrokerInfoWidgetBlank()
+    //BrokerInfoWidgetBlank()
 }
 
