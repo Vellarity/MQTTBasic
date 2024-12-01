@@ -29,6 +29,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -73,6 +74,7 @@ import com.example.mqttbasic.ui.theme.LightGrey
 import com.example.mqttbasic.ui.theme.LightPurple
 import com.example.mqttbasic.ui.theme.effects.shimmerEffect
 import com.hivemq.client.mqtt.mqtt3.Mqtt3Client
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
@@ -170,83 +172,16 @@ private fun ConnectingToBrokerBlock(state:ConnectionInfoState.ConnectingToBroker
 fun MainStateBlock(state:ConnectionInfoState.MainState, onEvent: (ConnectionInfoEvent) -> Unit) {
     val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState()
-    val scope = rememberCoroutineScope()
-    var showBottomSheet by remember { mutableStateOf(false) }
+    var showMessageBottomSheet by remember { mutableStateOf(false) }
+    var showTopicListBottomSheet by remember { mutableStateOf(false) } // TODO: Лист топиков
 
-    if (showBottomSheet) {
-        var topicValue by remember { mutableStateOf(state.topicField) }
-        var messageValue by remember { mutableStateOf("") }
-
-        ModalBottomSheet(
-            //windowInsets = WindowInsets(5.dp, 0.dp, 5.dp, 0.dp),
-            containerColor = LightGrey,
-            dragHandle = {BottomSheetDefaults.DragHandle(color = Color.White)},
-            onDismissRequest = { showBottomSheet = false },
-            sheetState = sheetState
-        ) {
-            Surface(
-                color = LightGrey
-            ) {
-                Column(
-                    modifier = Modifier.padding(bottom = 10.dp, start = 10.dp, end = 10.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    MqttBasicTextField(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(60.dp)
-                            .padding(top = 0.dp)
-                            .clip(RoundedCornerShape(15.dp)),
-                        value = topicValue,
-                        labelText = "Топик",
-                        onValueChange = { topicValue = it }
-                    )
-                    MqttBasicTextField(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(160.dp)
-                            .padding(top = 0.dp)
-                            .clip(RoundedCornerShape(15.dp)),
-                        singleLine = false,
-                        value = messageValue,
-                        labelText = "Сообщение",
-                        onValueChange = {messageValue = it}
-                    )
-                    Button(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = LightPurple
-                        ),
-                        shape = RoundedCornerShape(15.dp),
-                        onClick = {
-                            onEvent(
-                                ConnectionInfoEvent.SendMessageToBroker(
-                                    topicValue,
-                                    messageValue,
-                                    context
-                                )
-                            );
-                            scope.launch { sheetState.hide() }.invokeOnCompletion {
-                                if (!sheetState.isVisible) {
-                                    showBottomSheet = false
-                                }
-                            }
-                        }
-                    ) {
-                        Icon(
-                            modifier = Modifier
-                                .size(30.dp),
-                            imageVector = ImageVector.vectorResource(id = R.drawable.send),
-                            contentDescription = null,
-                            tint = DarkPurple
-                        )
-                    }
-                    
-                }
-            }
-
-
-        }
+    if (showMessageBottomSheet) {
+        MessageBottomSheet(
+            sheetState = sheetState,
+            onEvent = onEvent,
+            onDismissRequest = {showMessageBottomSheet = false},
+            topicValue = state.topicField,
+            messageValue = "")
     }
     
     Column(
@@ -300,7 +235,7 @@ fun MainStateBlock(state:ConnectionInfoState.MainState, onEvent: (ConnectionInfo
                         disabledContainerColor = LightGrey,
                         disabledContentColor = DarkGrey
                     ),
-                    onClick = { showBottomSheet = true }
+                    onClick = { showMessageBottomSheet = true }
                 ) {
                     Icon(
                         modifier = Modifier
@@ -359,6 +294,89 @@ fun MainStateBlock(state:ConnectionInfoState.MainState, onEvent: (ConnectionInfo
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MessageBottomSheet(
+    sheetState:SheetState,
+    onDismissRequest:() -> Unit,
+    topicValue:String,
+    messageValue:String,
+    onEvent: (ConnectionInfoEvent) -> Unit
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var topicValue by remember { mutableStateOf(topicValue) }
+    var messageValue by remember { mutableStateOf(messageValue) }
+
+    ModalBottomSheet(
+        //windowInsets = WindowInsets(5.dp, 0.dp, 5.dp, 0.dp),
+        containerColor = LightGrey,
+        dragHandle = {BottomSheetDefaults.DragHandle(color = Color.White)},
+        onDismissRequest = onDismissRequest,
+        sheetState = sheetState
+    ) {
+        Surface(
+            color = LightGrey
+        ) {
+            Column(
+                modifier = Modifier.padding(bottom = 10.dp, start = 10.dp, end = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                MqttBasicTextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp)
+                        .padding(top = 0.dp)
+                        .clip(RoundedCornerShape(15.dp)),
+                    value = topicValue,
+                    labelText = "Топик",
+                    onValueChange = { topicValue = it }
+                )
+                MqttBasicTextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(160.dp)
+                        .padding(top = 0.dp)
+                        .clip(RoundedCornerShape(15.dp)),
+                    singleLine = false,
+                    value = messageValue,
+                    labelText = "Сообщение",
+                    onValueChange = {messageValue = it}
+                )
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = LightPurple
+                    ),
+                    shape = RoundedCornerShape(15.dp),
+                    onClick = {
+                        onEvent(
+                            ConnectionInfoEvent.SendMessageToBroker(
+                                topicValue,
+                                messageValue,
+                                context
+                            )
+                        );
+                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                            if (!sheetState.isVisible) {
+                                onDismissRequest()
+                            }
+                        }
+                    }
+                ) {
+                    Icon(
+                        modifier = Modifier
+                            .size(30.dp),
+                        imageVector = ImageVector.vectorResource(id = R.drawable.send),
+                        contentDescription = null,
+                        tint = DarkPurple
+                    )
+                }
+
+            }
+        }
+    }
+}
 
 
 @Preview
@@ -372,7 +390,7 @@ private fun ConnectionInfoPreview() {
             userName = "userName",
             userPassword = "userPassword",
             actualTopic = "#/abs/topic",
-            establishConnection = false
+            establishConnection = true
         ),
         listOfMessages = listOf(),
         topicField = "/asd/conf",
