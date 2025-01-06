@@ -11,5 +11,6 @@ sealed class ConnectionInfoEvent:UiEvent {
     data class TopicFieldChange(val value:String): ConnectionInfoEvent()
     data class SubscribeButtonClicked(val context:Context): ConnectionInfoEvent()
     data class SendMessageToBroker(val topicValue:String, val messageValue:String, val context: Context):ConnectionInfoEvent()
+    data class CreateNewTopicButtonClicked(val newTopicName: String, val context: Context): ConnectionInfoEvent()
     //data class SwitchModalSheetVisibility(val isVisible:Boolean): ConnectionInfoEvent()
 }

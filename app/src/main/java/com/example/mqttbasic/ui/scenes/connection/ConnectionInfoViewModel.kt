@@ -1,5 +1,6 @@
 package com.example.mqttbasic.ui.scenes.connection
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import android.widget.Toast
@@ -7,15 +8,27 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mqttbasic.base.UiEvent
 import com.example.mqttbasic.data.model.database.AppDatabase
+import com.example.mqttbasic.data.model.database.daos.ConnectionTopicDao
 import com.example.mqttbasic.data.model.database.entities.Connection
+import com.example.mqttbasic.data.model.database.entities.ConnectionTopic
 import com.example.mqttbasic.data.model.database.entities.Message
+import com.example.mqttbasic.data.model.database.entities.NewConnectionTopic
+import com.example.mqttbasic.data.model.database.entities.NewMessage
+import com.example.mqttbasic.data.model.database.tuples.ConnectionWithTopics
 import com.hivemq.client.mqtt.MqttClient
 import com.hivemq.client.mqtt.MqttGlobalPublishFilter
+import com.hivemq.client.mqtt.datatypes.MqttQos
+import com.hivemq.client.mqtt.mqtt3.Mqtt3BlockingClient
 import com.hivemq.client.mqtt.mqtt3.message.publish.Mqtt3Publish
+import com.hivemq.client.mqtt.mqtt3.message.subscribe.Mqtt3Subscribe
+import com.hivemq.client.mqtt.mqtt3.message.subscribe.Mqtt3SubscribeBuilder
+import com.hivemq.client.mqtt.mqtt3.message.subscribe.Mqtt3Subscription
+import com.hivemq.client.mqtt.mqtt3.message.subscribe.Mqtt3SubscriptionBuilder
 import com.hivemq.client.mqtt.mqtt3.message.unsubscribe.Mqtt3Unsubscribe
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.sql.Timestamp
 import java.time.Instant
@@ -60,16 +73,24 @@ class ConnectionInfoViewModel @Inject constructor(
             is ConnectionInfoEvent.TopicFieldChange -> {updateTopicFieldValue(event.value, state)}
             is ConnectionInfoEvent.SubscribeButtonClicked -> { updateSubscription(event.context, state) }
             is ConnectionInfoEvent.SendMessageToBroker -> { sendMessage(event.topicValue, event.messageValue, event.context, state) }
-            //is ConnectionInfoEvent.SwitchModalSheetVisibility -> { switchModalSheetVisibility(event.isVisible, state) }
+            is ConnectionInfoEvent.CreateNewTopicButtonClicked -> { createNewTopic(event.newTopicName, event.context, state) }
             else -> {}
         }
     }
 
     private fun getBrokerFromDb(brokerId: Int) {
         viewModelScope.launch {
-            val broker:Connection = db.connectionDao().getConnectionById(brokerId)
-
-            _uiState.value = ConnectionInfoState.ConnectingToBroker(broker)
+            db.connectionDao().getConnectionByIdWithTopicsFlow(brokerId).collect{ connection ->
+                when (val currentState = _uiState.value) {
+                    is ConnectionInfoState.FetchingDbData -> {
+                        _uiState.value = ConnectionInfoState.ConnectingToBroker(connection.connection, connection.topics)
+                    }
+                    is ConnectionInfoState.MainState -> {
+                        _uiState.value = currentState.copy(connectionInfo = connection.connection, connectionTopics = connection.topics)
+                    }
+                    else -> {}
+                }
+            }
         }
     }
 
@@ -95,6 +116,7 @@ class ConnectionInfoViewModel @Inject constructor(
             }
         }
     }
+
 
     private fun connectToBroker(state: ConnectionInfoState.ConnectingToBroker) {
         viewModelScope.launch {
@@ -123,28 +145,41 @@ class ConnectionInfoViewModel @Inject constructor(
                 connected = false
                 newConnection = state.connectionInfo.copy(establishConnection = false)
                 db.connectionDao().insertConnections(newConnection)
-                //_uiState.value = state.copy(connectionInfo = newConnection)
             }
 
-            if (connected)
+            if (connected) {
+                val subscribeBuilder = Mqtt3Subscribe.builder();
+
+                var subscribe: Mqtt3Subscribe? = null;
+
+                for ((i, topic) in state.connectionTopics.withIndex()) {
+                    val subscription = Mqtt3Subscription.builder()
+                        .topicFilter(topic.name).qos(MqttQos.AT_LEAST_ONCE).build();
+                    if (i == state.connectionTopics.lastIndex) {
+                        subscribe = subscribeBuilder.addSubscription(subscription).build();
+                    } else {
+                        subscribeBuilder.addSubscription(subscription)
+                    }
+                }
+
                 try {
-                    clientBuild.subscribeWith()
-                        .topicFilter(state.connectionInfo.actualTopic ?: "#")
-                        .send()
+                    clientBuild.subscribe(subscribe!!);
                     clientBuild.toAsync().publishes(MqttGlobalPublishFilter.ALL) { publish ->
                         onGetMessage(
                             publish
                         )
                     }
-                } catch (e:Exception) {
+                } catch (e: Exception) {
                     println(e)
                 }
+            }
 
             _uiState.value = ConnectionInfoState.MainState(
                 connectionClass =  if (connected) clientBuild else null,
                 connectionInfo =  newConnection ?: state.connectionInfo,
                 listOfMessages = db.messageDao().getMessagesByBrokerId(state.connectionInfo.id!!),
                 topicField = state.connectionInfo.actualTopic ?: "#",
+                connectionTopics = state.connectionTopics
                 //modalSheetVisibility = false
             )
         }
@@ -152,22 +187,35 @@ class ConnectionInfoViewModel @Inject constructor(
 
     private fun onGetMessage(callbackData:Mqtt3Publish) {
         viewModelScope.launch {
-            val state = (_uiState.value as ConnectionInfoState.MainState)
+            try {
+                val state = (_uiState.value as ConnectionInfoState.MainState)
 
-            val message = Message(
-                payload = callbackData.payloadAsBytes.toString(Charsets.UTF_8),
-                topic = callbackData.topic.toString(),
-                qos = callbackData.qos.code,
-                connectionId = (_uiState.value as ConnectionInfoState.MainState).connectionInfo.id!!,
-                timestamp = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
-            )
+                val message = NewMessage(
+                    payload = callbackData.payloadAsBytes.toString(Charsets.UTF_8),
+                    topic = callbackData.topic.toString(),
+                    qos = callbackData.qos.code,
+                    connectionId = (_uiState.value as ConnectionInfoState.MainState).connectionInfo.id!!,
+                    timestamp = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+                )
 
-            val newID = db.messageDao().insertMessage(message)
+                val newID = db.messageDao().createMessage(message)
 
-            val list = state.listOfMessages.toMutableList()
-            list.add(0, message.copy(id = newID))
+                val newMessage = Message(
+                    id = newID,
+                    payload = message.payload,
+                    topic = message.topic,
+                    qos = message.qos,
+                    connectionId = message.connectionId,
+                    timestamp = message.timestamp
+                )
 
-            _uiState.value = state.copy(listOfMessages = list)
+                val list = state.listOfMessages.toMutableList()
+                list.add(0, newMessage)
+
+                _uiState.value = state.copy(listOfMessages = list)
+            } catch (e:Exception) {
+                println(e)
+            }
         }
     }
 
@@ -221,5 +269,40 @@ class ConnectionInfoViewModel @Inject constructor(
             return@launch
         }
     }
+    private fun createNewTopic(newTopicName: String, context: Context, state: ConnectionInfoState.MainState) {
+        val newTopic: NewConnectionTopic = NewConnectionTopic(
+            name = newTopicName,
+            connectionId = state.connectionInfo.id!!
+        )
+        viewModelScope.launch {
+            try {
+                addSubscription(state.connectionClass!!, newTopicName)
+                db.connectionTopicDao().createTopic(newTopic)
+            } catch(_:Exception) {
+                Toast.makeText(
+                    context,
+                    "Не удалось подключиться к новому каналу",
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
 
+            Toast.makeText(
+                context,
+                "Новое подключение успешно создано",
+                Toast.LENGTH_SHORT,
+            ).show()
+        }
+    }
+
+    private fun addSubscription(client: Mqtt3BlockingClient, newTopicName: String) {
+        try {
+            client
+                .subscribeWith()
+                .topicFilter(newTopicName)
+                .send()
+        } catch(e:Exception) {
+            throw e
+        }
+
+    }
 }

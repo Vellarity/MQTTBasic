@@ -2,8 +2,10 @@ package com.example.mqttbasic.data.model.database.daos
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.mqttbasic.data.model.database.entities.Message
+import com.example.mqttbasic.data.model.database.entities.NewMessage
 
 @Dao
 interface MessageDao {
@@ -14,4 +16,6 @@ interface MessageDao {
     @Insert
     suspend fun insertMessage(message:Message):Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE, entity = Message::class)
+    suspend fun createMessage(newMessage: NewMessage):Long
 }
