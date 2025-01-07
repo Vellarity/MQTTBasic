@@ -58,14 +58,18 @@ class ListOfBrokersViewModel @Inject constructor(
 
     private fun getConnectionsList() {
         viewModelScope.launch {
-            db.connectionDao().getConnections().collect{listOfConnections ->
-                if (listOfConnections.isEmpty()) {
-                    _uiState.value = ListOfBrokersState.NoData
-                } else {
-                    _uiState.value = ListOfBrokersState.Success(
-                        listOfConnections
-                    )
+            try {
+                db.connectionDao().getConnections().collect{listOfConnections ->
+                    if (listOfConnections.isEmpty()) {
+                        _uiState.value = ListOfBrokersState.NoData
+                    } else {
+                        _uiState.value = ListOfBrokersState.Success(
+                            listOfConnections
+                        )
+                    }
                 }
+            } catch (e:Exception) {
+                println(e)
             }
         }
     }

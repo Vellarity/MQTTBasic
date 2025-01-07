@@ -132,7 +132,6 @@ private fun FetchingDbBlock(brokerId: Int, onEvent:(ConnectionInfoEvent) -> Unit
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 private fun ConnectingToBrokerBlock(state:ConnectionInfoState.ConnectingToBroker, onEvent:(ConnectionInfoEvent) -> Unit) {
     LaunchedEffect(Unit) {
         onEvent(ConnectionInfoEvent.EnterConnectionScreen)
@@ -163,7 +162,6 @@ private fun ConnectingToBrokerBlock(state:ConnectionInfoState.ConnectingToBroker
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainStateBlock(state:ConnectionInfoState.MainState, onEvent: (ConnectionInfoEvent) -> Unit) {
-    val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState()
     val topicSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showMessageBottomSheet by remember { mutableStateOf(false) }
@@ -360,7 +358,6 @@ fun TopicsBottomSheet(
     onEvent: (ConnectionInfoEvent) -> Unit
 ) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
 
     val lazyListState = rememberLazyListState()
 
@@ -396,7 +393,7 @@ fun TopicsBottomSheet(
                         state = lazyListState
                     ){
                         items(listOfTopics, {topic -> topic.id!!}) {topic ->
-                            TopicWidget(topic = topic, modifier = Modifier, onDelete = {})
+                            TopicWidget(topic = topic, modifier = Modifier, onDelete = { onEvent(ConnectionInfoEvent.DeleteTopic(topic, context)) })
                         }
                     }
                 else

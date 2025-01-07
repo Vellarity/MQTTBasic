@@ -16,7 +16,7 @@ interface ConnectionTopicDao {
     @Query("Select * from connection_topic where connection_id = :brokerId")
     suspend fun getTopicsByBrokerId(brokerId: Int): MutableList<ConnectionTopic>
 
-    @Query("Delete from connection_topic where connection_id = :id")
+    @Query("Delete from connection_topic where id = :id")
     suspend fun deleteTopicById(id: Int)
 
     @Delete

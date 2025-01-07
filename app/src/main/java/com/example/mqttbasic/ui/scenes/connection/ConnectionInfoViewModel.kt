@@ -74,6 +74,7 @@ class ConnectionInfoViewModel @Inject constructor(
             is ConnectionInfoEvent.SubscribeButtonClicked -> { updateSubscription(event.context, state) }
             is ConnectionInfoEvent.SendMessageToBroker -> { sendMessage(event.topicValue, event.messageValue, event.context, state) }
             is ConnectionInfoEvent.CreateNewTopicButtonClicked -> { createNewTopic(event.newTopicName, event.context, state) }
+            is ConnectionInfoEvent.DeleteTopic -> { deleteOldTopic(event.topic, event.context, state) }
             else -> {}
         }
     }
@@ -270,7 +271,7 @@ class ConnectionInfoViewModel @Inject constructor(
         }
     }
     private fun createNewTopic(newTopicName: String, context: Context, state: ConnectionInfoState.MainState) {
-        val newTopic: NewConnectionTopic = NewConnectionTopic(
+        val newTopic = NewConnectionTopic(
             name = newTopicName,
             connectionId = state.connectionInfo.id!!
         )
@@ -293,6 +294,26 @@ class ConnectionInfoViewModel @Inject constructor(
             ).show()
         }
     }
+    private fun deleteOldTopic(topic:ConnectionTopic, context: Context, state: ConnectionInfoState.MainState) {
+        viewModelScope.launch {
+            try {
+                removeSubscription(state.connectionClass!!, topic.name)
+                db.connectionTopicDao().deleteTopicById(topic.id)
+            } catch (_:Exception) {
+                Toast.makeText(
+                    context,
+                    "Не удалось отключиться от канала",
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
+            Toast.makeText(
+                context,
+                "Канал удалён",
+                Toast.LENGTH_SHORT,
+            ).show()
+        }
+
+    }
 
     private fun addSubscription(client: Mqtt3BlockingClient, newTopicName: String) {
         try {
@@ -300,9 +321,25 @@ class ConnectionInfoViewModel @Inject constructor(
                 .subscribeWith()
                 .topicFilter(newTopicName)
                 .send()
+
+            client.toAsync().publishes(MqttGlobalPublishFilter.ALL) { publish ->
+                onGetMessage(
+                    publish
+                )
+            }
         } catch(e:Exception) {
             throw e
         }
 
+    }
+    private fun removeSubscription(client:Mqtt3BlockingClient, oldTopicName:String) {
+        try {
+            client
+                .unsubscribeWith()
+                .topicFilter(oldTopicName)
+                .send()
+        } catch(e:Exception) {
+            throw e
+        }
     }
 }
